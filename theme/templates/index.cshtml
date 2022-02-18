@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home</title>
+
+  <link rel="stylesheet" href="/styles/app.css" />
+</head>
+
+<body>
+  <article>
+    <ul>
+      @foreach (var item in Model.Posts)
+      {
+        <li>
+          <a href="@item.PostUrl">@item.PostTitle</a>
+        </li>
+      }
+    </ul>
+  </article>
+</body>
+
+</html>
