@@ -7,6 +7,17 @@ tags:
 
 # Foo Page
 
+This is foo page for testing.
+
+## Code Blocks
+
+C#:
 ```csharp
 Console.WriteLine("Hello, World!");
 ```
+Javascript:
+```js
+console.log("Hello, World!");
+```
+
+

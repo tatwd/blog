@@ -2,3 +2,11 @@ html,
 body {
   margin: 0;
 }
+
+.container {
+  max-width: 666px;
+  margin: auto;
+
+  padding-left: 15px;
+  padding-right: 15px;
+}
