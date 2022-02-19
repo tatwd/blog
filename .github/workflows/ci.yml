@@ -75,6 +75,8 @@ jobs:
       run: |
           echo ${{ steps.deploy-vercel-staging.outputs.preview-url }}
 
+    #TODO: add e2e test before deploying to production
+
     - name: Deploy to Production
       uses: amondnet/vercel-action@v20
       id: deploy-vercel-production
