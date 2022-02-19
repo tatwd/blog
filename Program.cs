@@ -68,7 +68,7 @@ foreach (var path in Directory.GetFiles(postDir, "*", SearchOption.AllDirectorie
     using StreamWriter swPost = File.CreateText(newPath.Replace(".md", ".html"));
     await swPost.WriteAsync(result);
 }
-Console.WriteLine("Generate post pages ok!");
+Console.WriteLine("Generate all post pages ok!");
 
 // Generate index.html
 var themeHomeTemplateContent = File.ReadAllText(themeHomeTemplateFilePath);
