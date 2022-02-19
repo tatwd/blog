@@ -35,7 +35,6 @@ var themePostTemplateContent = File.ReadAllText(themePostTemplateFilePath);
 var postFiles = Directory.GetFiles(postDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
-    var mdText = File.ReadAllText(path);
     var newPath = path.Replace(postDir,  $"{distDir}/posts");
     var postPageDir = Path.GetDirectoryName(newPath)!;
 
@@ -68,6 +67,7 @@ foreach (var path in postFiles.AsParallel())
         }
     };
     pipeline.Setup(renderer);
+    var mdText = File.ReadAllText(path);
     var document = MarkdownParser.Parse(mdText, pipeline);
     renderer.Render(document);
     writer.Flush();
