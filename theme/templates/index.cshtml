@@ -12,14 +12,14 @@
 
 <body>
   <header class="container">
-    <h1>My Blog</h1>
+    <h1>@Model.BlogTitle</h1>
   </header>
   <article class="container">
     <ul>
       @foreach (var item in Model.Posts)
       {
         <li style="font-size: x-large;margin-bottom: 5px;">
-          <a href="@item.PostRoute">@item.PostRoute</a>
+          <a href="@item.PostRoute">@item.PostTitle</a>
         </li>
       }
     </ul>
