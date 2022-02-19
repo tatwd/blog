@@ -1,4 +1,4 @@
-[![Deploy blog](https://github.com/tatwd/blog/actions/workflows/deploy.yml/badge.svg)](https://github.com/tatwd/blog/actions/workflows/ci.yml)
+[![Deploy blog](https://github.com/tatwd/blog/actions/workflows/ci.yml/badge.svg)](https://github.com/tatwd/blog/actions/workflows/ci.yml)
 
 Dev
 
