@@ -21,7 +21,6 @@ if (Directory.Exists(distDir))
 var razorEngine = new RazorEngine();
 var pipline = new MarkdownPipelineBuilder()
     .UseAdvancedExtensions()
-    // .UseAutoIdentifiers()
     .UseYamlFrontMatter()
     // .UsePrism()
     .Build();
@@ -54,7 +53,10 @@ foreach (var path in Directory.GetFiles(postDir, "*", SearchOption.AllDirectorie
 
     var html = Markdown.ToHtml(mdText, pipline);
 
-    var postRoute = Path.GetDirectoryName(newPath.Replace(distDir, ""));
+    var htmlFile = newPath.Replace(".md", ".html");
+    var htmlFileName = Path.GetFileName(htmlFile);
+    var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, ""));
+
     var postViewModel = new PostViewModel
     {
         PostTitle = fileNameWithoutExt,
@@ -65,7 +67,7 @@ foreach (var path in Directory.GetFiles(postDir, "*", SearchOption.AllDirectorie
     var template = razorEngine.Compile(themePostTemplateContent);
     var result = template.Run(postViewModel);
 
-    using StreamWriter swPost = File.CreateText(newPath.Replace(".md", ".html"));
+    using StreamWriter swPost = File.CreateText(htmlFile);
     await swPost.WriteAsync(result);
 }
 Console.WriteLine("Generate all post pages ok!");
@@ -80,7 +82,7 @@ Console.WriteLine("Generate home page ok!");
 
 
 // Copy other static files
-foreach (var path in Directory.GetFiles(themeStyleDir, "*", SearchOption.AllDirectories))
+foreach (var path in Directory.GetFiles(themeDir, "*", SearchOption.AllDirectories))
 {
     if (path.StartsWith(themeTemplateDir))
         continue;
