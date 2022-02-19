@@ -67,10 +67,10 @@ jobs:
         working-directory: ./dist
         scope: ${{ secrets.VERCEL_ORG_ID }}
 
-    - name: Run Tests Against Vercel
-      env:
-        VERCEL_URL: ${{ steps.deploy-vercel-staging.outputs.preview-url }}
-      run: npm run test
+    #- name: Run Tests Against Vercel
+    #  env:
+    #    VERCEL_URL: ${{ steps.deploy-vercel-staging.outputs.preview-url }}
+    #  run: npm run test
 
     #- name: Deploy to Production
     #    uses: amondnet/vercel-action@v20
