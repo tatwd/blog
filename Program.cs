@@ -5,7 +5,7 @@ using RazorEngineCore;
 
 var cwd = Directory.GetCurrentDirectory();
 
-var distDir = $"{cwd}/public";
+var distDir = $"{cwd}/dist";
 var postDir = $"{cwd}/posts";
 var themeDir = $"{cwd}/theme";
 var themeTemplateDir = $"{themeDir}/templates";
