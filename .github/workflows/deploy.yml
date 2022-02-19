@@ -1,19 +1,15 @@
 name: Deploy blog
-
 on:
-  #TODO: 条件触发
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
@@ -23,7 +19,6 @@ jobs:
 
     - name: Restore nuget packages
       run: dotnet restore
-
     - name: Build
       run: dotnet build --no-restore
 
@@ -32,3 +27,59 @@ jobs:
 
     - name: Generate blog files
       run: dotnet run --no-build --verbosity normal
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    # Commit message starts with `release:` will delpoy
+    if: "startsWith(github.event.head_commit.message, 'release:')"
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+
+    #TODO: cache deps
+
+    - name: Restore nuget packages
+      run: dotnet restore
+    - name: Build release
+      run: dotnet build -c Release --no-restore
+
+    #- name: Test
+    #  run: dotnet test -c Release--no-build --verbosity normal
+
+    - name: Publish blog.dll
+      run: dotnet publish -c Release -o out --no-build
+
+    - name: Generate blog files
+      run: dotnet ./out/blog.dll
+
+    - name: Deploy to Staging
+      id: deploy-vercel-staging
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_TL_ENGINE }}
+          working-directory: dist
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+    - name: Run Tests Against Vercel
+        env:
+          VERCEL_URL: ${{ steps.deploy-vercel-staging.outputs.preview-url }}
+        run: npm run test
+
+    #- name: Deploy to Production
+    #    uses: amondnet/vercel-action@v20
+    #    id: deploy-vercel-production
+    #    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    #    with:
+    #      vercel-token: ${{ secrets.VERCEL_TOKEN }}
+    #      vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+    #      vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_TL_ENGINE }}
+    #      vercel-args: '--prod'
+    #      working-directory: dist
+    #      scope: ${{ secrets.VERCEL_ORG_ID }}
