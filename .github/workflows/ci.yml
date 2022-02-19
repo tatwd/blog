@@ -15,7 +15,13 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    #TODO: cache deps
+    - name: Cache nuget package
+      uses: actions/cache@v1
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
 
     - name: Restore nuget packages
       run: dotnet restore
@@ -47,13 +53,8 @@ jobs:
       run: dotnet restore
     - name: Build release
       run: dotnet build -c Release --no-restore
-
-    #- name: Test
-    #  run: dotnet test -c Release--no-build --verbosity normal
-
-    - name: Publish blog.dll
+    - name: Publish release
       run: dotnet publish -c Release -o out --no-build
-
     - name: Generate blog files
       run: dotnet ./out/blog.dll
 
@@ -64,22 +65,22 @@ jobs:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: ./
+        working-directory: ./dist
         scope: ${{ secrets.VERCEL_ORG_ID }}
 
-    #- name: Run Tests Against Vercel
-    #  env:
-    #    VERCEL_URL: ${{ steps.deploy-vercel-staging.outputs.preview-url }}
-    #  run: npm run test
+    - name: Preview url
+      run: |
+          echo ${{ steps.deploy-vercel-staging.outputs.preview-url }}
 
-    #- name: Deploy to Production
-    #    uses: amondnet/vercel-action@v20
-    #    id: deploy-vercel-production
-    #    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    #    with:
-    #      vercel-token: ${{ secrets.VERCEL_TOKEN }}
-    #      vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-    #      vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_TL_ENGINE }}
-    #      vercel-args: '--prod'
-    #      working-directory: ./
-    #      scope: ${{ secrets.VERCEL_ORG_ID }}
+    - name: Deploy to Production
+      uses: amondnet/vercel-action@v20
+      id: deploy-vercel-production
+      # Only push envet happened in main branch can deploy to Vercel
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+        working-directory: ./dist
+        scope: ${{ secrets.VERCEL_ORG_ID }}
