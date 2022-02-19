@@ -5,7 +5,7 @@ using RazorEngineCore;
 
 var cwd = Directory.GetCurrentDirectory();
 
-var distDir = $"{cwd}/dist";
+var distDir = $"{cwd}/public";
 var postDir = $"{cwd}/posts";
 var themeDir = $"{cwd}/theme";
 var themeTemplateDir = $"{themeDir}/templates";
@@ -73,12 +73,14 @@ foreach (var path in Directory.GetFiles(postDir, "*", SearchOption.AllDirectorie
 Console.WriteLine("Generate all post pages ok!");
 
 // Generate index.html
-var themeHomeTemplateContent = File.ReadAllText(themeHomeTemplateFilePath);
-var homeTemplate = razorEngine.Compile(themeHomeTemplateContent);
-var homeHtml = homeTemplate.Run(new { Posts = posts });
-using StreamWriter swHome = File.CreateText(Path.Combine(distDir, "index.html"));
-await swHome.WriteAsync(homeHtml);
+await RenderRazorPage(themeHomeTemplateFilePath, Path.Combine(distDir, "index.html"),
+    new { Posts = posts });
 Console.WriteLine("Generate home page ok!");
+
+// Generate 404.html
+await RenderRazorPage(Path.Combine(themeTemplateDir, "404.cshtml"),
+    Path.Combine(distDir, "404.html"));
+Console.WriteLine("Generate 404 page ok!");
 
 
 // Copy other static files
@@ -100,6 +102,18 @@ foreach (var path in Directory.GetFiles(themeDir, "*", SearchOption.AllDirectori
 }
 Console.WriteLine("Generate other static files ok!");
 
+
+async Task RenderRazorPage(string templatePath, string distPath, object? model = null)
+{
+    if (razorEngine is null)
+        return;
+
+    var templateContent = File.ReadAllText(templatePath);
+    var homeTemplate = razorEngine.Compile(templateContent);
+    var homeHtml = homeTemplate.Run(model);
+    using StreamWriter swHome = File.CreateText(distPath);
+    await swHome.WriteAsync(homeHtml);
+}
 
 public class PostViewModel
 {
