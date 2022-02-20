@@ -1,3 +1,5 @@
+@using System;
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -29,6 +31,10 @@
       }
     </ul>
   </article>
+  <footer class="container">
+    <a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
+    @DateTime.Now.Year © @Model.Author
+  </footer>
 </body>
 
 </html>

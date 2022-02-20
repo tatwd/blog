@@ -11,6 +11,7 @@ using MyBlog;
 
 
 var blogTitle = "My Blog";
+var author = "_king";
 
 var cwd = Directory.GetCurrentDirectory();
 var distDir = $"{cwd}/dist";
@@ -95,6 +96,9 @@ foreach (var path in postFiles.AsParallel())
         FrontMatter = postFrontMatter
     };
     posts.Add(postViewModel);
+
+    // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
+
     var template = await razorEngine.CompileAsync(themePostTemplateContent, optin =>
     {
         optin.AddAssemblyReference(typeof(Util));
@@ -113,6 +117,7 @@ await RenderRazorPageAsync($"{themeTemplateDir}/index.cshtml",
     $"{distDir}/index.html", new
     {
         BlogTitle = blogTitle,
+        Author = author,
         Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
     });
 Console.WriteLine("Generated: /index.html");
@@ -216,6 +221,8 @@ PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
     if (frontMatter.CreateTime == default)
         throw new ArgumentNullException(nameof(frontMatter.CreateTime),
             "Post `create_time` is required in front matter!");
+
+    frontMatter.Tags ??= Array.Empty<string>();
 
     return frontMatter;
 }
