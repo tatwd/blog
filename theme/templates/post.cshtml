@@ -14,8 +14,11 @@
 <body>
   <header class="container">
     <a href="/">Home</a>
+    <h1>@Model.PostTitle</h1>
   </header>
-  <article class="container">@Model.PostContent</article>
+  <article class="container">
+    @Model.PostContent
+  </article>
 </body>
 
 </html>

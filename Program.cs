@@ -1,9 +1,12 @@
-﻿using Markdig;
+﻿using System.Reflection;
+using Markdig;
+using Markdig.Extensions.Yaml;
 using Markdig.Parsers;
 using Markdig.Renderers;
 // using Markdig.Prism;
 using Markdig.Syntax;
 using RazorEngineCore;
+using YamlDotNet.Serialization;
 
 var blogTitle = "My Blog";
 
@@ -27,6 +30,11 @@ var pipeline = new MarkdownPipelineBuilder()
     // .UsePrism()
     .Build();
 
+IDeserializer yamlDeserializer = new DeserializerBuilder()
+        .IgnoreUnmatchedProperties()
+        .Build();
+
+
 
 // Generate post pages
 var posts = new List<PostViewModel>(16);
@@ -37,7 +45,6 @@ foreach (var path in postFiles.AsParallel())
 {
     var newPath = path.Replace(postDir,  $"{distDir}/posts");
     var postPageDir = Path.GetDirectoryName(newPath)!;
-
 
     if (!Directory.Exists(postPageDir))
         Directory.CreateDirectory(postPageDir);
@@ -69,6 +76,7 @@ foreach (var path in postFiles.AsParallel())
     pipeline.Setup(renderer);
     var mdText = File.ReadAllText(path);
     var document = MarkdownParser.Parse(mdText, pipeline);
+    var postFrontMatter = GetPostFrontMatter(document);
     renderer.Render(document);
     writer.Flush();
     var html = writer.ToString();
@@ -77,14 +85,13 @@ foreach (var path in postFiles.AsParallel())
     var fileNameWithoutExt = Path.GetFileNameWithoutExtension(newPath);
     var parentDir = Directory.GetParent(newPath)!;
     var isPostPageDir = parentDir.FullName.EndsWith("/posts");
-    var postTitle = isPostPageDir ? fileNameWithoutExt : parentDir.Name;
     var newPostRoute = isPostPageDir ? postRoute + "/" + htmlFileName : postRoute;
 
     var postViewModel = new PostViewModel
     {
-        PostTitle = postTitle,
         PostContent = html,
-        PostRoute = newPostRoute
+        PostRoute = newPostRoute,
+        FrontMatter = postFrontMatter
     };
     posts.Add(postViewModel);
     var template = razorEngine.Compile(themePostTemplateContent);
@@ -102,7 +109,7 @@ await RenderRazorPageAsync($"{themeTemplateDir}/index.cshtml",
     $"{distDir}/index.html", new
     {
         BlogTitle = blogTitle,
-        Posts = posts
+        Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
     });
 Console.WriteLine("Generated: /index.html");
 
@@ -139,9 +146,56 @@ async Task RenderRazorPageAsync(string templatePath, string distPath, object? mo
     await sw.WriteAsync(html);
 }
 
+PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
+{
+    var block = document
+            .Descendants<YamlFrontMatterBlock>()
+            .FirstOrDefault();
+
+    if (block is null)
+        throw new ArgumentNullException(nameof(block), "Post must have a front matter!");
+
+    var yaml =
+            block
+            // this is not a mistake
+            // we have to call .Lines 2x
+            .Lines // StringLineGroup[]
+            .Lines // StringLine[]
+            .OrderByDescending(x => x.Line)
+            .Select(x => $"{x}\n")
+            .ToList()
+            .Select(x => x.Replace("---", string.Empty))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Aggregate((s, agg) => agg + s);
+
+    var frontMatter = yamlDeserializer.Deserialize<PostFrontMatterViewModel>(yaml)!;
+
+    if (string.IsNullOrEmpty(frontMatter.Title))
+        throw new ArgumentNullException(nameof(frontMatter.Title),
+            "Post `title` is required in front matter!");
+    if (frontMatter.CreateTime == default)
+        throw new ArgumentNullException(nameof(frontMatter.CreateTime),
+            "Post `create_time` is required in front matter!");
+
+    return frontMatter;
+}
 public class PostViewModel
 {
-    public string PostTitle { get; set; } = null!;
     public string PostContent { get; set; } = null!;
     public string PostRoute { get; set; } = null!;
+    public PostFrontMatterViewModel FrontMatter { get; set; } = null!;
+    public string PostTitle => FrontMatter.Title;
+}
+
+
+public class PostFrontMatterViewModel
+{
+    [YamlMember(Alias = "title")]
+    public string Title { get; set; } = null!;
+
+    [YamlMember(Alias = "create_time")]
+    public DateTime CreateTime { get; set; }
+
+    [YamlMember(Alias = "tags")]
+    public string[]? Tags { get; set; }
 }
