@@ -5,12 +5,29 @@ body {
 
 img {
   max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 .container {
   max-width: 666px;
   margin: auto;
 
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+}
+
+a {
+  text-decoration: none;
+  box-shadow: 0 1px 0 0 currentColor;
+  outline: none;
+}
+
+.no-underline {
+  box-shadow: none;
+}
+
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }

@@ -10,29 +10,46 @@
   <title>Home</title>
 
   <link rel="stylesheet" href="/styles/app.css" />
+  <style>
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
 </head>
 
 <body>
   <header class="container">
     <h1 style="text-transform: uppercase;">@Model.BlogTitle</h1>
+    <div class="my-links">
+      <a target="_blank" href="https://slides.tatwd.me">slides</a>
+      •
+      <a target="_blank" href="https://github.com/tatwd">github</a>
+      •
+      <a href="mailto:tatwdo@gmail.com">mail</a>
+      •
+      <a target="_blank" href="#">rss</a>
+    </div>
   </header>
-  <article class="container">
+  <main class="container" style="padding-top: 2.5rem;">
     <ul>
       @foreach (var item in Model.Posts)
       {
-        <li style="margin-bottom: 8px;">
+        <li style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
           <div style="margin-bottom: 5px;">
-            <a style="font-size: x-large;font-weight:bold;margin-bottom: 5px;" href="@item.PostRoute">@item.PostTitle</a>
+            <a class="no-underline" style="font-size: 1.25rem;font-weight:bold;margin-bottom: 5px;"
+            href="@item.PostRoute">@item.PostTitle</a>
           </div>
           <div>
-            <span>@item.FrontMatter.CreateTime.ToLongDateString()</span>
+            <span>@item.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
           </div>
         </li>
       }
     </ul>
-  </article>
-  <footer class="container">
-    <a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
+  </main>
+  <footer class="container" style="padding-bottom: 2.5rem;padding-top: 2rem;">
+    <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
     @DateTime.Now.Year © @Model.Author
   </footer>
 </body>

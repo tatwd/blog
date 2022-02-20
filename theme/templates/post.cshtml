@@ -11,27 +11,32 @@
 
   <link rel="stylesheet" href="/styles/app.css">
   <style>
-    a.tag {
-      text-decoration: none;
-      background-color: #eee;
+    img {
+      margin-top: 2em;
+      margin-bottom: 2em
     }
   </style>
 </head>
 
 <body>
   <header class="container">
-    <a href="/">Home</a>
+    <div style="margin-top: 1.25rem;">
+      <a class="underline font-mono" href="/">cd ..</a>
+    </div>
     <h1>@Model.PostTitle</h1>
     <small>
+      <span>@Model.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
       @foreach (var tag in Model.FrontMatter.Tags)
       {
-        <a class="tag" href="/tags/@Util.ReplaceWithspaceChars(tag)/">#@tag</a>
+        <a class="no-underline" style="background-color: #eee;" href="/tags/@Util.ReplaceWithspaceChars(tag)/">#@tag</a>
       }
     </small>
   </header>
-  <article class="container">
-    @Model.PostContent
-  </article>
+  <main class="container" style="padding-top: 1.75rem; padding-bottom: 1.75rem;">
+    <article>
+      @Model.PostContent
+    </article>
+  </main>
 </body>
 
 </html>

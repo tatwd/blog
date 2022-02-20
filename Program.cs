@@ -10,7 +10,7 @@ using YamlDotNet.Serialization;
 using MyBlog;
 
 
-var blogTitle = "My Blog";
+var blogTitle = "_king's Notes";
 var author = "_king";
 
 var cwd = Directory.GetCurrentDirectory();

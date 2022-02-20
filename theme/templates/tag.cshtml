@@ -12,25 +12,27 @@
 
 <body>
   <header class="container">
-    <a href="/">Home</a>
+    <a href="/">cd ..</a>
     <h1>#@Model.TagName</h1>
   </header>
-  <article class="container">
-    <ul>
-      @foreach (var item in Model.Posts)
-      {
-        <li style="margin-bottom: 8px">
-          <div style="margin-bottom: 5px">
-            <a style="font-size: x-large; font-weight: bold; margin-bottom: 5px"
-            href="@item.PostRoute">@item.PostTitle</a>
-          </div>
-          <div>
-            <span>@item.FrontMatter.CreateTime.ToLongDateString()</span>
-          </div>
-        </li>
-      }
-    </ul>
-  </article>
+  <main class="container">
+    <article>
+      <ul>
+        @foreach (var item in Model.Posts)
+        {
+          <li style="margin-bottom: 8px">
+            <div style="margin-bottom: 5px">
+              <a style="font-size: x-large; font-weight: bold; margin-bottom: 5px"
+              href="@item.PostRoute">@item.PostTitle</a>
+            </div>
+            <div>
+              <span>@item.FrontMatter.CreateTime.ToLongDateString()</span>
+            </div>
+          </li>
+        }
+      </ul>
+    </article>
+  </main>
 </body>
 
 </html>
