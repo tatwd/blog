@@ -115,14 +115,12 @@ Console.WriteLine("Generated: /404.html");
 var otherThemeFiles = Directory.GetFiles(themeDir, "*", SearchOption.AllDirectories);
 foreach (var path in otherThemeFiles.AsParallel())
 {
+    // Do not copy any files in templates dir
     if (path.StartsWith(themeTemplateDir))
         continue;
 
     var newPath = path.Replace(themeDir, distDir);
-    var fileDir = Path.GetDirectoryName(newPath);
-
-    if (string.IsNullOrEmpty(fileDir))
-        continue;
+    var fileDir = Path.GetDirectoryName(newPath)!;
 
     if (!Directory.Exists(fileDir))
         Directory.CreateDirectory(fileDir);
@@ -134,14 +132,11 @@ foreach (var path in otherThemeFiles.AsParallel())
 
 async Task RenderRazorPageAsync(string templatePath, string distPath, object? model = null)
 {
-    if (razorEngine is null)
-        return;
-
     var templateContent = File.ReadAllText(templatePath);
-    var homeTemplate = razorEngine.Compile(templateContent);
-    var homeHtml = homeTemplate.Run(model);
-    using StreamWriter swHome = File.CreateText(distPath);
-    await swHome.WriteAsync(homeHtml);
+    var template = razorEngine.Compile(templateContent);
+    var html = template.Run(model);
+    using StreamWriter sw = File.CreateText(distPath);
+    await sw.WriteAsync(html);
 }
 
 public class PostViewModel
