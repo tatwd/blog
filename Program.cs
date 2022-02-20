@@ -70,8 +70,8 @@ foreach (var path in postFiles.AsParallel())
         {
             if (link.StartsWith("./"))
                 return postRoute + link.Substring(1);
-            if (!link.StartsWith("/"))
-                return  postRoute + "/" + link;
+            //if (!link.StartsWith("/"))
+            //    return  postRoute + "/" + link;
             return link;
         }
     };
