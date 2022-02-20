@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.TagName</title>
+
+    <link rel="stylesheet" href="/styles/app.css" />
+  </head>
+
+  <body>
+    <header class="container">
+      <a href="/">Home</a>
+      <h1>#@Model.TagName</h1>
+    </header>
+    <article class="container">
+      <ul>
+        @foreach (var item in Model.Posts) {
+        <li style="margin-bottom: 8px">
+          <div style="margin-bottom: 5px">
+            <a
+              style="font-size: x-large; font-weight: bold; margin-bottom: 5px"
+              href="@item.PostRoute"
+              >@item.PostTitle</a
+            >
+          </div>
+          <div>
+            <span>@item.FrontMatter.CreateTime.ToLongDateString()</span>
+          </div>
+        </li>
+        }
+      </ul>
+    </article>
+  </body>
+</html>

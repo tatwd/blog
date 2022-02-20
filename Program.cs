@@ -7,6 +7,8 @@ using Markdig.Renderers;
 using Markdig.Syntax;
 using RazorEngineCore;
 using YamlDotNet.Serialization;
+using MyBlog;
+
 
 var blogTitle = "My Blog";
 
@@ -29,10 +31,9 @@ var pipeline = new MarkdownPipelineBuilder()
     .UseYamlFrontMatter()
     // .UsePrism()
     .Build();
-
-IDeserializer yamlDeserializer = new DeserializerBuilder()
-        .IgnoreUnmatchedProperties()
-        .Build();
+var yamlDeserializer = new DeserializerBuilder()
+    .IgnoreUnmatchedProperties()
+    .Build();
 
 
 
@@ -94,7 +95,10 @@ foreach (var path in postFiles.AsParallel())
         FrontMatter = postFrontMatter
     };
     posts.Add(postViewModel);
-    var template = razorEngine.Compile(themePostTemplateContent);
+    var template = await razorEngine.CompileAsync(themePostTemplateContent, optin =>
+    {
+        optin.AddAssemblyReference(typeof(Util));
+    });
     var result = template.Run(postViewModel);
 
     using StreamWriter swPost = File.CreateText(htmlFile);
@@ -116,6 +120,35 @@ Console.WriteLine("Generated: /index.html");
 // Generate 404.html
 await RenderRazorPageAsync($"{themeTemplateDir}/404.cshtml", $"{distDir}/404.html");
 Console.WriteLine("Generated: /404.html");
+
+// Generate tags pages
+var mapTags = new Dictionary<string, IList<PostViewModel>>();
+foreach (var post in posts)
+{
+    if (post.FrontMatter.Tags is null)
+        continue;
+
+    foreach (var tagName in post.FrontMatter.Tags)
+    {
+        if (!mapTags.ContainsKey(tagName))
+            mapTags[tagName] = new List<PostViewModel>{ post };
+        else
+            mapTags[tagName].Add(post);
+    }
+}
+
+foreach (var (tagName, postsWithSameTag) in mapTags)
+{
+    var model = new
+    {
+        TagName = tagName,
+        Posts = postsWithSameTag
+    };
+    var newTagRoute = $"/tags/{Util.ReplaceWithspaceChars(tagName)}/index.html";
+    await RenderRazorPageAsync($"{themeTemplateDir}/tag.cshtml",
+        $"{distDir}{newTagRoute}", model);
+    Console.WriteLine("Generated: {0}", newTagRoute);
+}
 
 
 // Copy other files in theme directory
@@ -139,8 +172,15 @@ foreach (var path in otherThemeFiles.AsParallel())
 
 async Task RenderRazorPageAsync(string templatePath, string distPath, object? model = null)
 {
+    var dir = Path.GetDirectoryName(distPath)!;
+    if (!Directory.Exists(dir))
+        Directory.CreateDirectory(dir);
+
     var templateContent = File.ReadAllText(templatePath);
-    var template = razorEngine.Compile(templateContent);
+    var template = await razorEngine.CompileAsync(templateContent, optin =>
+    {
+        optin.AddAssemblyReference(typeof(Util));
+    });
     var html = template.Run(model);
     using StreamWriter sw = File.CreateText(distPath);
     await sw.WriteAsync(html);
@@ -179,6 +219,8 @@ PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
 
     return frontMatter;
 }
+
+
 public class PostViewModel
 {
     public string PostContent { get; set; } = null!;
@@ -197,5 +239,8 @@ public class PostFrontMatterViewModel
     public DateTime CreateTime { get; set; }
 
     [YamlMember(Alias = "tags")]
-    public string[]? Tags { get; set; }
+    public string[] Tags { get; set; } = Array.Empty<string>();
+
+    // [YamlIgnore]
+    // public string[] FormatTags => Tags.Select(s => s.ReplaceWithspaceChars()).ToArray();
 }

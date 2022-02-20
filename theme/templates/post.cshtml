@@ -1,3 +1,5 @@
+@using MyBlog;
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -8,13 +10,24 @@
   <title>@Model.PostTitle</title>
 
   <link rel="stylesheet" href="/styles/app.css">
-
+  <style>
+    a.tag {
+      text-decoration: none;
+      background-color: #eee;
+    }
+  </style>
 </head>
 
 <body>
   <header class="container">
     <a href="/">Home</a>
     <h1>@Model.PostTitle</h1>
+    <small>
+      @foreach (var tag in Model.FrontMatter.Tags)
+      {
+        <a class="tag" href="/tags/@Util.ReplaceWithspaceChars(tag)/">#@tag</a>
+      }
+    </small>
   </header>
   <article class="container">
     @Model.PostContent
