@@ -8,6 +8,13 @@
   <title>@Model.TagName</title>
 
   <link rel="stylesheet" href="/styles/app.css" />
+  <style>
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
 </head>
 
 <body>
@@ -15,14 +22,14 @@
     <a href="/">cd ..</a>
     <h1>#@Model.TagName</h1>
   </header>
-  <main class="container">
+  <main class="container" style="padding-bottom: 2.5rem;padding-top: 2rem;">
     <article>
       <ul>
         @foreach (var item in Model.Posts)
         {
-          <li style="margin-bottom: 8px">
+          <li style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
             <div style="margin-bottom: 5px">
-              <a style="font-size: x-large; font-weight: bold; margin-bottom: 5px"
+              <a class="no-underline" style="font-size: 1.25rem; font-weight: bold; margin-bottom: 5px"
               href="@item.PostRoute">@item.PostTitle</a>
             </div>
             <div>
