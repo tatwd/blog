@@ -8,7 +8,6 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Home</title>
-
   <link rel="stylesheet" href="/styles/app.css" />
   <style>
     ul {
@@ -21,15 +20,15 @@
 
 <body>
   <header class="container">
-    <h1 style="text-transform: uppercase;">@Model.BlogTitle</h1>
-    <div class="my-links">
-      <a target="_blank" href="https://slides.tatwd.me">slides</a>
+    <h1 class="text-uppercase" style="margin: 3rem 0 1.75rem 0;">@Model.BlogTitle</h1>
+    <div class="text-light">
+      <a class="underline" target="_blank" href="https://slides.tatwd.me">slides</a>
       •
-      <a target="_blank" href="https://github.com/tatwd">github</a>
+      <a class="underline" target="_blank" href="https://github.com/tatwd">github</a>
       •
-      <a href="mailto:tatwdo@gmail.com">mail</a>
+      <a class="underline" href="mailto:tatwdo@gmail.com">mail</a>
       •
-      <a target="_blank" href="#">rss</a>
+      <a class="underline" target="_blank" href="#">rss</a>
     </div>
   </header>
   <main class="container" style="padding-top: 2.5rem;">
@@ -38,18 +37,18 @@
       {
         <li style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
           <div style="margin-bottom: 5px;">
-            <a class="no-underline" style="font-size: 1.25rem;font-weight:bold;margin-bottom: 5px;"
+            <a class="text-uppercase text-black hover-red" style="font-size: 1.25rem;margin-bottom: 5px;"
             href="@item.PostRoute">@item.PostTitle</a>
           </div>
-          <div>
+          <div class="text-light">
             <span>@item.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
           </div>
         </li>
       }
     </ul>
   </main>
-  <footer class="container" style="padding-bottom: 2.5rem;padding-top: 2rem;">
-    <a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
+  <footer class="container text-light" style="padding-bottom: 2.5rem;padding-top: 2rem;">
+    <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
     @DateTime.Now.Year © @Model.Author
   </footer>
 </body>

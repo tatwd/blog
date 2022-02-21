@@ -7,8 +7,12 @@ using MyBlog;
 using RazorEngineCore;
 using YamlDotNet.Serialization;
 
-var blogTitle = "_king's Notes";
-var author = "_king";
+// My blog global config
+var blogConfig = new BlogConfig
+{
+    Title = "_king's Notes",
+    Author = "_king",
+};
 
 var cwd = Directory.GetCurrentDirectory();
 var distDir = $"{cwd}/dist";
@@ -83,6 +87,7 @@ foreach (var path in postFiles.AsParallel())
 
     var postViewModel = new PostViewModel
     {
+        BlogConfig = blogConfig,
         PostContent = html,
         PostRoute = newPostRoute,
         FrontMatter = postFrontMatter
@@ -104,13 +109,13 @@ foreach (var path in postFiles.AsParallel())
 }
 
 // Generate index.html
-await RenderRazorPageAsync($"{themeTemplateDir}/index.cshtml",
-    $"{distDir}/index.html", new
-    {
-        BlogTitle = blogTitle,
-            Author = author,
-            Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
-    });
+var homeViewModel = new
+{
+    BlogTitle = blogConfig.Title,
+    Author = blogConfig.Author,
+    Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
+};
+await RenderRazorPageAsync($"{themeTemplateDir}/index.cshtml", $"{distDir}/index.html", homeViewModel);
 Console.WriteLine("Generated: /index.html");
 
 // Generate 404.html
@@ -137,10 +142,11 @@ foreach (var(tagName, postsWithSameTag) in mapTags)
 {
     var model = new
     {
+        BlogConfig = blogConfig,
         TagName = tagName,
         Posts = postsWithSameTag
     };
-    var newTagRoute = $"/tags/{Util.ReplaceWithspaceChars(tagName)}/index.html";
+    var newTagRoute = $"/tags/{Util.ReplaceWithspaceByLodash(tagName)}/index.html";
     await RenderRazorPageAsync($"{themeTemplateDir}/tag.cshtml",
         $"{distDir}{newTagRoute}", model);
     Console.WriteLine("Generated: {0}", newTagRoute);
@@ -202,7 +208,7 @@ PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
         .Where(x => !string.IsNullOrWhiteSpace(x))
         .Aggregate((s, agg) => agg + s);
 
-    var frontMatter = yamlDeserializer.Deserialize<PostFrontMatterViewModel>(yaml) !;
+    var frontMatter = yamlDeserializer.Deserialize<PostFrontMatterViewModel>(yaml)!;
 
     if (string.IsNullOrEmpty(frontMatter.Title))
         throw new ArgumentNullException(nameof(frontMatter.Title),
@@ -216,8 +222,15 @@ PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
     return frontMatter;
 }
 
+public class BlogConfig
+{
+    public string Title { get; set; } = null!;
+    public string Author { get; set; } = null!;
+}
+
 public class PostViewModel
 {
+    public BlogConfig BlogConfig { get; set; } = null!;
     public string PostContent { get; set; } = null!;
     public string PostRoute { get; set; } = null!;
     public PostFrontMatterViewModel FrontMatter { get; set; } = null!;

@@ -1,0 +1,58 @@
+:root {
+  --code-bgcolor: #f6f8fa;
+  --code-fonts: "SFMono-Regular", Consolas, Monaco, Menlo, "Andale Mono",
+    "Ubuntu Mono", monospace;
+}
+
+article {
+  color: var(--color-light-black);
+  position: relative;
+  line-height: 1.8em;
+  text-align: left;
+}
+
+article img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+article a {
+  border-bottom: 2px solid transparent;
+  padding-bottom: 0.2em;
+}
+
+article a:hover {
+  border-bottom: 2px solid var(--color-red);
+}
+
+article h2 {
+  margin-top: 32px;
+  position: relative;
+  color: var(--color-black);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+article h2::before {
+  content: "";
+  display: block;
+  border-left: 5px solid #f66;
+  color: #f66;
+  position: absolute;
+  height: 100%;
+  left: -15px;
+}
+
+/* TODO: 代码高亮需要引入 prism.css 暂时这样 */
+article pre {
+  overflow: auto;
+  padding: 1em;
+  margin: 0.5em 0;
+  border-radius: 0.3em;
+  line-height: 1.5em;
+  background-color: var(--code-bgcolor);
+  font-family: var(--code-fonts);
+}
