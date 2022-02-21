@@ -1,14 +1,11 @@
-﻿using System.Reflection;
-using Markdig;
+﻿using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Parsers;
 using Markdig.Renderers;
-// using Markdig.Prism;
 using Markdig.Syntax;
+using MyBlog;
 using RazorEngineCore;
 using YamlDotNet.Serialization;
-using MyBlog;
-
 
 var blogTitle = "_king's Notes";
 var author = "_king";
@@ -20,23 +17,18 @@ var themeDir = $"{cwd}/theme";
 var themeStyleDir = $"{themeDir}/styles";
 var themeTemplateDir = $"{themeDir}/templates";
 
-
 if (Directory.Exists(distDir))
     Directory.Delete(distDir, true);
-
 
 var razorEngine = new RazorEngine();
 var pipeline = new MarkdownPipelineBuilder()
     .UseAdvancedExtensions()
     // .UseFigures()
     .UseYamlFrontMatter()
-    // .UsePrism()
     .Build();
 var yamlDeserializer = new DeserializerBuilder()
     .IgnoreUnmatchedProperties()
     .Build();
-
-
 
 // Generate post pages
 var posts = new List<PostViewModel>(16);
@@ -45,8 +37,8 @@ var themePostTemplateContent = File.ReadAllText(themePostTemplateFilePath);
 var postFiles = Directory.GetFiles(postDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
-    var newPath = path.Replace(postDir,  $"{distDir}/posts");
-    var postPageDir = Path.GetDirectoryName(newPath)!;
+    var newPath = path.Replace(postDir, $"{distDir}/posts");
+    var postPageDir = Path.GetDirectoryName(newPath) !;
 
     if (!Directory.Exists(postPageDir))
         Directory.CreateDirectory(postPageDir);
@@ -61,7 +53,7 @@ foreach (var path in postFiles.AsParallel())
 
     var htmlFile = newPath.Replace(".md", ".html");
     var htmlFileName = Path.GetFileName(htmlFile);
-    var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, ""))!;
+    var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, "")) !;
 
     using var writer = new StringWriter();
     var renderer = new HtmlRenderer(writer)
@@ -85,7 +77,7 @@ foreach (var path in postFiles.AsParallel())
     // var html = Markdown.ToHtml(mdText, pipline);
 
     var fileNameWithoutExt = Path.GetFileNameWithoutExtension(newPath);
-    var parentDir = Directory.GetParent(newPath)!;
+    var parentDir = Directory.GetParent(newPath) !;
     var isPostPageDir = parentDir.FullName.EndsWith("/posts");
     var newPostRoute = isPostPageDir ? postRoute + "/" + htmlFileName : postRoute;
 
@@ -111,14 +103,13 @@ foreach (var path in postFiles.AsParallel())
     Console.WriteLine("Generated: {0}/{1}", postRoute, htmlFileName);
 }
 
-
 // Generate index.html
 await RenderRazorPageAsync($"{themeTemplateDir}/index.cshtml",
     $"{distDir}/index.html", new
     {
         BlogTitle = blogTitle,
-        Author = author,
-        Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
+            Author = author,
+            Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
     });
 Console.WriteLine("Generated: /index.html");
 
@@ -136,13 +127,13 @@ foreach (var post in posts)
     foreach (var tagName in post.FrontMatter.Tags)
     {
         if (!mapTags.ContainsKey(tagName))
-            mapTags[tagName] = new List<PostViewModel>{ post };
+            mapTags[tagName] = new List<PostViewModel> { post };
         else
             mapTags[tagName].Add(post);
     }
 }
 
-foreach (var (tagName, postsWithSameTag) in mapTags)
+foreach (var(tagName, postsWithSameTag) in mapTags)
 {
     var model = new
     {
@@ -155,7 +146,6 @@ foreach (var (tagName, postsWithSameTag) in mapTags)
     Console.WriteLine("Generated: {0}", newTagRoute);
 }
 
-
 // Copy other files in theme directory
 var otherThemeFiles = Directory.GetFiles(themeDir, "*", SearchOption.AllDirectories);
 foreach (var path in otherThemeFiles.AsParallel())
@@ -165,7 +155,7 @@ foreach (var path in otherThemeFiles.AsParallel())
         continue;
 
     var newPath = path.Replace(themeDir, distDir);
-    var fileDir = Path.GetDirectoryName(newPath)!;
+    var fileDir = Path.GetDirectoryName(newPath) !;
 
     if (!Directory.Exists(fileDir))
         Directory.CreateDirectory(fileDir);
@@ -174,10 +164,9 @@ foreach (var path in otherThemeFiles.AsParallel())
     Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
 }
 
-
 async Task RenderRazorPageAsync(string templatePath, string distPath, object? model = null)
 {
-    var dir = Path.GetDirectoryName(distPath)!;
+    var dir = Path.GetDirectoryName(distPath) !;
     if (!Directory.Exists(dir))
         Directory.CreateDirectory(dir);
 
@@ -194,26 +183,26 @@ async Task RenderRazorPageAsync(string templatePath, string distPath, object? mo
 PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
 {
     var block = document
-            .Descendants<YamlFrontMatterBlock>()
-            .FirstOrDefault();
+        .Descendants<YamlFrontMatterBlock>()
+        .FirstOrDefault();
 
     if (block is null)
         throw new ArgumentNullException(nameof(block), "Post must have a front matter!");
 
     var yaml =
-            block
-            // this is not a mistake
-            // we have to call .Lines 2x
-            .Lines // StringLineGroup[]
-            .Lines // StringLine[]
-            .OrderByDescending(x => x.Line)
-            .Select(x => $"{x}\n")
-            .ToList()
-            .Select(x => x.Replace("---", string.Empty))
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Aggregate((s, agg) => agg + s);
+        block
+        // this is not a mistake
+        // we have to call .Lines 2x
+        .Lines // StringLineGroup[]
+        .Lines // StringLine[]
+        .OrderByDescending(x => x.Line)
+        .Select(x => $"{x}\n")
+        .ToList()
+        .Select(x => x.Replace("---", string.Empty))
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Aggregate((s, agg) => agg + s);
 
-    var frontMatter = yamlDeserializer.Deserialize<PostFrontMatterViewModel>(yaml)!;
+    var frontMatter = yamlDeserializer.Deserialize<PostFrontMatterViewModel>(yaml) !;
 
     if (string.IsNullOrEmpty(frontMatter.Title))
         throw new ArgumentNullException(nameof(frontMatter.Title),
@@ -222,11 +211,10 @@ PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
         throw new ArgumentNullException(nameof(frontMatter.CreateTime),
             "Post `create_time` is required in front matter!");
 
-    frontMatter.Tags ??= Array.Empty<string>();
+    frontMatter.Tags = frontMatter.Tags ?? Array.Empty<string>();
 
     return frontMatter;
 }
-
 
 public class PostViewModel
 {
@@ -235,7 +223,6 @@ public class PostViewModel
     public PostFrontMatterViewModel FrontMatter { get; set; } = null!;
     public string PostTitle => FrontMatter.Title;
 }
-
 
 public class PostFrontMatterViewModel
 {
@@ -247,7 +234,4 @@ public class PostFrontMatterViewModel
 
     [YamlMember(Alias = "tags")]
     public string[] Tags { get; set; } = Array.Empty<string>();
-
-    // [YamlIgnore]
-    // public string[] FormatTags => Tags.Select(s => s.ReplaceWithspaceChars()).ToArray();
 }
