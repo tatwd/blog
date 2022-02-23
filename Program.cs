@@ -12,6 +12,7 @@ var blogConfig = new BlogConfig
 {
     Title = "_king's Notes",
     Author = "_king",
+    Description = "万古长空，一朝风月。"
 };
 
 var cwd = Directory.GetCurrentDirectory();
@@ -113,11 +114,9 @@ foreach (var path in postFiles.AsParallel())
 // Generate index.html
 var homeViewModel = new
 {
-    BlogTitle = blogConfig.Title,
-    Author = blogConfig.Author,
+    BlogConfig = blogConfig,
     Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
 };
-
 var themeHomeTemplateContent = File.ReadAllText($"{themeTemplateDir}/index.cshtml");
 var themeHomeTemplate = await razorEngine.CompileAsync(themeHomeTemplateContent);
 await SaveRenderedRazorPageAsync(themeHomeTemplate, $"{distDir}/index.html", homeViewModel);
@@ -233,6 +232,7 @@ public class BlogConfig
 {
     public string Title { get; set; } = null!;
     public string Author { get; set; } = null!;
+    public string Description { get; set; } = null!;
 }
 
 public class PostViewModel

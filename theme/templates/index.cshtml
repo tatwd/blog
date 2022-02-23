@@ -7,6 +7,12 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  @if (!string.IsNullOrEmpty(Model.BlogConfig.Description))
+  {
+    <meta name="description" content="@Model.BlogConfig.Description" />
+  }
+
   <title>Home</title>
   <link rel="stylesheet" href="/styles/app.css" />
   <style>
@@ -20,7 +26,7 @@
 
 <body>
   <header class="container">
-    <h1 class="text-uppercase" style="margin: 3rem 0 1.75rem 0;">@Model.BlogTitle</h1>
+    <h1 class="text-uppercase" style="margin: 3rem 0 1.75rem 0;">@Model.BlogConfig.Title</h1>
     <div class="text-light">
       <a class="underline" target="_blank" href="https://slides.tatwd.me">slides</a>
       •
@@ -49,7 +55,7 @@
   </main>
   <footer class="container text-light" style="padding-bottom: 2.5rem;padding-top: 2rem;">
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
-    @DateTime.Now.Year © @Model.Author
+    @DateTime.Now.Year © @Model.BlogConfig.Author
   </footer>
 </body>
 
