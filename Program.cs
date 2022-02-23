@@ -38,6 +38,13 @@ var yamlDeserializer = new DeserializerBuilder()
 var posts = new List<PostViewModel>(16);
 var themePostTemplateFilePath = $"{themeTemplateDir}/post.cshtml";
 var themePostTemplateContent = File.ReadAllText(themePostTemplateFilePath);
+
+// All posts use a same razor template
+var themePostTemplate = await razorEngine.CompileAsync(themePostTemplateContent, optin =>
+{
+    optin.AddAssemblyReference(typeof(Util));
+});
+
 var postFiles = Directory.GetFiles(postDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
@@ -47,7 +54,7 @@ foreach (var path in postFiles.AsParallel())
     if (!Directory.Exists(postPageDir))
         Directory.CreateDirectory(postPageDir);
 
-    // Copy others files to dist, just like images
+    // Copy other files to dist, just like images etc.
     if (!newPath.EndsWith(".md"))
     {
         File.Copy(path, newPath, true);
@@ -95,12 +102,7 @@ foreach (var path in postFiles.AsParallel())
     posts.Add(postViewModel);
 
     // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
-
-    var template = await razorEngine.CompileAsync(themePostTemplateContent, optin =>
-    {
-        optin.AddAssemblyReference(typeof(Util));
-    });
-    var result = template.Run(postViewModel);
+    var result = themePostTemplate.Run(postViewModel);
 
     using StreamWriter swPost = File.CreateText(htmlFile);
     await swPost.WriteAsync(result);
@@ -115,14 +117,19 @@ var homeViewModel = new
     Author = blogConfig.Author,
     Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
 };
-await RenderRazorPageAsync($"{themeTemplateDir}/index.cshtml", $"{distDir}/index.html", homeViewModel);
+
+var themeHomeTemplateContent = File.ReadAllText($"{themeTemplateDir}/index.cshtml");
+var themeHomeTemplate = await razorEngine.CompileAsync(themeHomeTemplateContent);
+await SaveRenderedRazorPageAsync(themeHomeTemplate, $"{distDir}/index.html", homeViewModel);
 Console.WriteLine("Generated: /index.html");
 
 // Generate 404.html
-await RenderRazorPageAsync($"{themeTemplateDir}/404.cshtml", $"{distDir}/404.html");
+var theme404TemplateContent = File.ReadAllText($"{themeTemplateDir}/404.cshtml");
+var theme404Template = await razorEngine.CompileAsync(theme404TemplateContent);
+await SaveRenderedRazorPageAsync(theme404Template, $"{distDir}/404.html");
 Console.WriteLine("Generated: /404.html");
 
-// Generate tags pages
+// Map all posts with same tag
 var mapTags = new Dictionary<string, IList<PostViewModel>>();
 foreach (var post in posts)
 {
@@ -138,6 +145,12 @@ foreach (var post in posts)
     }
 }
 
+// Generate tag pages
+var themeTagTemplateContent = File.ReadAllText($"{themeTemplateDir}/tag.cshtml");
+var themeTagTemplate = await razorEngine.CompileAsync(themeTagTemplateContent, optin =>
+{
+    optin.AddAssemblyReference(typeof(Util));
+});
 foreach (var(tagName, postsWithSameTag) in mapTags)
 {
     var model = new
@@ -147,8 +160,7 @@ foreach (var(tagName, postsWithSameTag) in mapTags)
         Posts = postsWithSameTag
     };
     var newTagRoute = $"/tags/{Util.ReplaceWithspaceByLodash(tagName)}/index.html";
-    await RenderRazorPageAsync($"{themeTemplateDir}/tag.cshtml",
-        $"{distDir}{newTagRoute}", model);
+    await SaveRenderedRazorPageAsync(themeTagTemplate, $"{distDir}{newTagRoute}", model);
     Console.WriteLine("Generated: {0}", newTagRoute);
 }
 
@@ -170,17 +182,12 @@ foreach (var path in otherThemeFiles.AsParallel())
     Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
 }
 
-async Task RenderRazorPageAsync(string templatePath, string distPath, object? model = null)
+async Task SaveRenderedRazorPageAsync(IRazorEngineCompiledTemplate template, string distPath, object? model = null)
 {
     var dir = Path.GetDirectoryName(distPath) !;
     if (!Directory.Exists(dir))
         Directory.CreateDirectory(dir);
 
-    var templateContent = File.ReadAllText(templatePath);
-    var template = await razorEngine.CompileAsync(templateContent, optin =>
-    {
-        optin.AddAssemblyReference(typeof(Util));
-    });
     var html = template.Run(model);
     using StreamWriter sw = File.CreateText(distPath);
     await sw.WriteAsync(html);
