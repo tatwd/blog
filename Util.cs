@@ -7,6 +7,16 @@ public static class Util
         return string.Join("", str.Select(c => char.IsWhiteSpace(c) ? '_' : c));
     }
 
+    public static void CreateDirIfNotExsits(string distPath)
+    {
+        var dir = Path.GetDirectoryName(distPath);
+        if (string.IsNullOrEmpty(dir))
+            throw new ArgumentNullException(nameof(dir),
+                "Directory name is null or empty");
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+    }
+
     public static string FormatReadingTime(double minutes)
     {
         return $"{minutes} min";

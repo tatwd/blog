@@ -1,8 +1,12 @@
-﻿using Markdig;
+﻿using System.Text;
+using System.Xml;
+using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Parsers;
 using Markdig.Renderers;
 using Markdig.Syntax;
+using Microsoft.SyndicationFeed;
+using Microsoft.SyndicationFeed.Atom;
 using MyBlog;
 using RazorEngineCore;
 using YamlDotNet.Serialization;
@@ -12,7 +16,9 @@ var blogConfig = new BlogConfig
 {
     Title = "_king's Notes",
     Author = "_king",
-    Description = "万古长空，一朝风月。"
+    Description = "万古长空，一朝风月。",
+    Email = "tatwdo@gmail.com",
+    Link = "https://blog.tatwd.me"
 };
 
 var cwd = Directory.GetCurrentDirectory();
@@ -50,10 +56,7 @@ var postFiles = Directory.GetFiles(postDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
     var newPath = path.Replace(postDir, $"{distDir}/posts");
-    var postPageDir = Path.GetDirectoryName(newPath) !;
-
-    if (!Directory.Exists(postPageDir))
-        Directory.CreateDirectory(postPageDir);
+    Util.CreateDirIfNotExsits(newPath);
 
     // Copy other files to dist, just like images etc.
     if (!newPath.EndsWith(".md"))
@@ -180,20 +183,19 @@ foreach (var path in otherThemeFiles.AsParallel())
         continue;
 
     var newPath = path.Replace(themeDir, distDir);
-    var fileDir = Path.GetDirectoryName(newPath) !;
-
-    if (!Directory.Exists(fileDir))
-        Directory.CreateDirectory(fileDir);
-
+    Util.CreateDirIfNotExsits(newPath);
     File.Copy(path, newPath, overwrite : true);
     Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
 }
 
+// Generate atom.xml
+await WriteAtomFeedAync(posts, $"{distDir}/atom.xml");
+Console.WriteLine("Generated: /atom.xml");
+
+
 async Task SaveRenderedRazorPageAsync(IRazorEngineCompiledTemplate template, string distPath, object? model = null)
 {
-    var dir = Path.GetDirectoryName(distPath) !;
-    if (!Directory.Exists(dir))
-        Directory.CreateDirectory(dir);
+    Util.CreateDirIfNotExsits(distPath);
 
     var html = template.Run(model);
     using StreamWriter sw = File.CreateText(distPath);
@@ -236,11 +238,59 @@ PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
     return frontMatter;
 }
 
+
+async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
+{
+    Util.CreateDirIfNotExsits(distPath);
+
+    using StreamWriter sw = File.CreateText(distPath);
+
+    using (XmlWriter xmlWriter = XmlWriter.Create(sw, new XmlWriterSettings() { Async = true , Indent = true }))
+    {
+
+        var writer = new AtomFeedWriter(xmlWriter);
+        await writer.WriteTitle(blogConfig.Title);
+        // await writer.WriteDescription(blogConfig.Description);
+        await writer.Write(new SyndicationLink(new Uri(blogConfig.Link)));
+        await writer.Write(new SyndicationPerson(blogConfig.Author, blogConfig.Email));
+        // await writer.WritePubDate(DateTimeOffset.UtcNow);
+
+        foreach (var post in posts)
+        {
+            var postLink = $"{blogConfig.Link}{post.PostRoute}";
+            var item = new AtomEntry
+            {
+                Id = postLink,
+                Title = post.PostTitle,
+                Published = post.FrontMatter.CreateTime,
+                LastUpdated = post.FrontMatter.CreateTime,
+                ContentType = "html",
+                Description = post.PostContent,
+                Summary = post.AbstractText
+            };
+
+            item.AddContributor(new SyndicationPerson(blogConfig.Author, blogConfig.Email, AtomContributorTypes.Author));
+            item.AddLink(new SyndicationLink(new Uri(postLink)));
+
+            foreach (var tag in post.FrontMatter.Tags)
+                item.AddCategory(new SyndicationCategory(tag));
+
+            await writer.Write(item);
+        }
+
+        xmlWriter.Flush();
+    }
+    await sw.FlushAsync();
+}
+
+
 public class BlogConfig
 {
     public string Title { get; set; } = null!;
     public string Author { get; set; } = null!;
     public string Description { get; set; } = null!;
+    public string Link { get; set; } = null!;
+    public string Email { get; set; } = null!;
 }
 
 public class PostViewModel
