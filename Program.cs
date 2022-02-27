@@ -255,7 +255,7 @@ async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
         await writer.Write(new SyndicationPerson(blogConfig.Author, blogConfig.Email));
         // await writer.WritePubDate(DateTimeOffset.UtcNow);
 
-        foreach (var post in posts)
+        foreach (var post in posts.OrderByDescending(p => p.FrontMatter.CreateTime))
         {
             var postLink = $"{blogConfig.Link}{post.PostRoute}";
             var item = new AtomEntry
