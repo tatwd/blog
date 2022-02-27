@@ -1,4 +1,3 @@
-@using System;
 @using MyBlog;
 
 <!DOCTYPE html>
@@ -8,6 +7,12 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  @if (!string.IsNullOrEmpty(Model.AbstractText))
+  {
+    <meta name="description" content="@Model.AbstractText" />
+  }
+
   <title>@Model.PostTitle</title>
   <link rel="stylesheet" href="/styles/app.css" />
   <link rel="stylesheet" href="/styles/post.css" />
@@ -21,6 +26,8 @@
     <h1 class="font-sans">@Model.PostTitle</h1>
     <small class="text-light">
       <span>@Model.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
+      •
+      <span>@Util.FormatReadingTime(Model.TimeToRead)</span>
       @foreach (var tag in Model.FrontMatter.Tags)
       {
         <a class="hover-underline" href="/tags/@Util.ReplaceWithspaceByLodash(tag)/">#@tag</a>
@@ -32,7 +39,7 @@
   </main>
   <footer class="container text-light" style="padding-bottom: 2.5rem;padding-top: 2rem;">
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
-    @DateTime.Now.Year © @Model.BlogConfig.Author
+    2017-PRESENT © @Model.BlogConfig.Author
   </footer>
 </body>
 

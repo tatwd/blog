@@ -1,4 +1,4 @@
-@using System;
+@using MyBlog;
 
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -38,6 +38,8 @@
             </div>
             <div class="text-light">
               <span>@item.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
+              •
+              <span>@Util.FormatReadingTime(item.TimeToRead)</span>
             </div>
           </li>
         }
@@ -46,7 +48,7 @@
   </main>
   <footer class="container text-light" style="padding-bottom: 2.5rem;padding-top: 2rem;">
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
-    @DateTime.Now.Year © @Model.BlogConfig.Author
+    2017-PRESENT © @Model.BlogConfig.Author
   </footer>
 </body>
 

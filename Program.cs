@@ -41,9 +41,9 @@ var themePostTemplateFilePath = $"{themeTemplateDir}/post.cshtml";
 var themePostTemplateContent = File.ReadAllText(themePostTemplateFilePath);
 
 // All posts use a same razor template
-var themePostTemplate = await razorEngine.CompileAsync(themePostTemplateContent, optin =>
+var themePostTemplate = await razorEngine.CompileAsync(themePostTemplateContent, option =>
 {
-    optin.AddAssemblyReference(typeof(Util));
+    option.AddAssemblyReference(typeof(Util));
 });
 
 var postFiles = Directory.GetFiles(postDir, "*", SearchOption.AllDirectories);
@@ -87,6 +87,9 @@ foreach (var path in postFiles.AsParallel())
     writer.Flush();
     var html = writer.ToString();
     // var html = Markdown.ToHtml(mdText, pipline);
+    var plainText = Markdown.ToPlainText(mdText, pipeline);
+    var timeToRead = Util.CalcTimeToRead(plainText);
+    var abstractText = plainText.Substring(0, Math.Min(plainText.Length, 140)).Replace("\n", " ");
 
     var fileNameWithoutExt = Path.GetFileNameWithoutExtension(newPath);
     var parentDir = Directory.GetParent(newPath) !;
@@ -97,6 +100,8 @@ foreach (var path in postFiles.AsParallel())
     {
         BlogConfig = blogConfig,
         PostContent = html,
+        TimeToRead = timeToRead,
+        AbstractText = abstractText,
         PostRoute = newPostRoute,
         FrontMatter = postFrontMatter
     };
@@ -118,7 +123,10 @@ var homeViewModel = new
     Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
 };
 var themeHomeTemplateContent = File.ReadAllText($"{themeTemplateDir}/index.cshtml");
-var themeHomeTemplate = await razorEngine.CompileAsync(themeHomeTemplateContent);
+var themeHomeTemplate = await razorEngine.CompileAsync(themeHomeTemplateContent, option =>
+{
+    option.AddAssemblyReference(typeof(Util));
+});
 await SaveRenderedRazorPageAsync(themeHomeTemplate, $"{distDir}/index.html", homeViewModel);
 Console.WriteLine("Generated: /index.html");
 
@@ -146,9 +154,9 @@ foreach (var post in posts)
 
 // Generate tag pages
 var themeTagTemplateContent = File.ReadAllText($"{themeTemplateDir}/tag.cshtml");
-var themeTagTemplate = await razorEngine.CompileAsync(themeTagTemplateContent, optin =>
+var themeTagTemplate = await razorEngine.CompileAsync(themeTagTemplateContent, option =>
 {
-    optin.AddAssemblyReference(typeof(Util));
+    option.AddAssemblyReference(typeof(Util));
 });
 foreach (var(tagName, postsWithSameTag) in mapTags)
 {
@@ -156,7 +164,7 @@ foreach (var(tagName, postsWithSameTag) in mapTags)
     {
         BlogConfig = blogConfig,
         TagName = tagName,
-        Posts = postsWithSameTag
+        Posts = postsWithSameTag.OrderByDescending(p => p.FrontMatter.CreateTime)
     };
     var newTagRoute = $"/tags/{Util.ReplaceWithspaceByLodash(tagName)}/index.html";
     await SaveRenderedRazorPageAsync(themeTagTemplate, $"{distDir}{newTagRoute}", model);
@@ -239,6 +247,8 @@ public class PostViewModel
 {
     public BlogConfig BlogConfig { get; set; } = null!;
     public string PostContent { get; set; } = null!;
+    public int TimeToRead { get; set; }
+    public string AbstractText { get; set; } = null!;
     public string PostRoute { get; set; } = null!;
     public PostFrontMatterViewModel FrontMatter { get; set; } = null!;
     public string PostTitle => FrontMatter.Title;

@@ -1,4 +1,4 @@
-@using System;
+@using MyBlog;
 
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -26,7 +26,9 @@
 
 <body>
   <header class="container">
-    <h1 class="text-uppercase" style="margin: 3rem 0 1.75rem 0;">@Model.BlogConfig.Title</h1>
+    <h1 class="text-uppercase" style="margin: 3rem 0 1.75rem 0">
+      @Model.BlogConfig.Title
+    </h1>
     <div class="text-light">
       <a class="underline" target="_blank" href="https://slides.tatwd.me">slides</a>
       •
@@ -37,25 +39,27 @@
       <a class="underline" target="_blank" href="#">rss</a>
     </div>
   </header>
-  <main class="container" style="padding-top: 2.5rem;">
+  <main class="container" style="padding-top: 2.5rem">
     <ul>
       @foreach (var item in Model.Posts)
       {
-        <li style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
-          <div style="margin-bottom: 5px;">
-            <a class="text-uppercase text-black hover-red" style="font-size: 1.25rem;margin-bottom: 5px;"
+        <li style="margin-top: 0.5rem; margin-bottom: 1.5rem">
+          <div style="margin-bottom: 5px">
+            <a class="text-uppercase text-black hover-red" style="font-size: 1.25rem; margin-bottom: 5px"
             href="@item.PostRoute">@item.PostTitle</a>
           </div>
           <div class="text-light">
             <span>@item.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
+            •
+            <span>@Util.FormatReadingTime(item.TimeToRead)</span>
           </div>
         </li>
       }
     </ul>
   </main>
-  <footer class="container text-light" style="padding-bottom: 2.5rem;padding-top: 2rem;">
+  <footer class="container text-light" style="padding-bottom: 2.5rem; padding-top: 2rem">
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
-    @DateTime.Now.Year © @Model.BlogConfig.Author
+    2017-PRESENT © @Model.BlogConfig.Author
   </footer>
 </body>
 
