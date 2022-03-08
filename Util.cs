@@ -52,6 +52,7 @@ public static class Util
 
         foreach (var c in content)
         {
+            // Chinese character check
             if (c >= 0x4e00 && c <= 0x9fbb)
             {
                 if (isAlpha)
