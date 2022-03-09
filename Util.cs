@@ -1,3 +1,6 @@
+using System.Text;
+using System.Text.RegularExpressions;
+
 namespace MyBlog;
 
 public static class Util
@@ -73,6 +76,30 @@ public static class Util
         }
 
         return words;
+    }
+
+    public static string Html2Text(string html)
+    {
+        // simple implement
+        return Regex.Replace(html, "<[^>]*>", "");
+    }
+
+    public static string GenerateAbstractText(string text)
+    {
+        var abstractTextBuilder = new StringBuilder();
+
+        foreach (var c in text)
+        {
+            if (abstractTextBuilder.Length >= 140 && char.IsPunctuation(c))
+            {
+                break;
+            }
+
+            abstractTextBuilder.Append(char.IsWhiteSpace(c) ? " " : c);
+        }
+
+        return abstractTextBuilder.ToString();
+
     }
 
 }

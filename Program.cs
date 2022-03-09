@@ -34,8 +34,8 @@ if (Directory.Exists(distDir))
 var razorEngine = new RazorEngine();
 var pipeline = new MarkdownPipelineBuilder()
     .UseAdvancedExtensions()
-    // .UseFigures()
     .UseYamlFrontMatter()
+    .UsePreciseSourceLocation()
     .Build();
 var yamlDeserializer = new DeserializerBuilder()
     .IgnoreUnmatchedProperties()
@@ -90,9 +90,12 @@ foreach (var path in postFiles.AsParallel())
     writer.Flush();
     var html = writer.ToString();
     // var html = Markdown.ToHtml(mdText, pipline);
-    var plainText = Markdown.ToPlainText(mdText, pipeline);
+
+    // var plainText = Markdown.ToPlainText(mdText, pipeline);
+    var plainText = Util.Html2Text(html);
     var timeToRead = Util.CalcTimeToRead(plainText);
-    var abstractText = plainText.Substring(0, Math.Min(plainText.Length, 140)).Replace("\n", " ");
+    // var abstractText = plainText.Substring(0, Math.Min(plainText.Length, 140)).Replace("\n", " ");
+    var abstractText = Util.GenerateAbstractText(plainText);
 
     var fileNameWithoutExt = Path.GetFileNameWithoutExtension(newPath);
     var parentDir = Directory.GetParent(newPath) !;
