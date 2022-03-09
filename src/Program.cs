@@ -1,10 +1,10 @@
-﻿using System.Text;
-using System.Xml;
+﻿using System.Xml;
 using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Parsers;
 using Markdig.Renderers;
 using Markdig.Syntax;
+using Microsoft.Extensions.Configuration;
 using Microsoft.SyndicationFeed;
 using Microsoft.SyndicationFeed.Atom;
 using MyBlog;
@@ -21,12 +21,23 @@ var blogConfig = new BlogConfig
     Link = "https://blog.tatwd.me"
 };
 
+// --posts
+// --theme
+// --dist
+var cmdArgs = new ConfigurationBuilder()
+    .AddCommandLine(args)
+    .Build();
+
 var cwd = Directory.GetCurrentDirectory();
-var distDir = $"{cwd}/dist";
-var postDir = $"{cwd}/posts";
-var themeDir = $"{cwd}/theme";
+var distDir = cmdArgs["dist"] ?? $"{cwd}/dist";
+var postDir = cmdArgs["posts"] ?? $"{cwd}/posts";
+var themeDir = cmdArgs["theme"] ?? $"{cwd}/theme";
 var themeStyleDir = $"{themeDir}/styles";
 var themeTemplateDir = $"{themeDir}/templates";
+
+Console.WriteLine("distDir: {0}", distDir);
+Console.WriteLine("postDir: {0}", postDir);
+Console.WriteLine("themeDir: {0}", themeDir);
 
 if (Directory.Exists(distDir))
     Directory.Delete(distDir, true);
@@ -36,6 +47,7 @@ var pipeline = new MarkdownPipelineBuilder()
     .UseAdvancedExtensions()
     .UseYamlFrontMatter()
     .UsePreciseSourceLocation()
+    .Use<MyPrismExtension>()
     .Build();
 var yamlDeserializer = new DeserializerBuilder()
     .IgnoreUnmatchedProperties()

@@ -53,24 +53,3 @@ article code:not([class*="language-"]) {
   padding: 0.2em 0.5em;
   border-radius: 0.3em;
 }
-
-article pre {
-  background-color: var(--code-bgcolor);
-  font-family: var(--code-fonts);
-  overflow: auto;
-  padding: 1em;
-  margin: 0.5em 0;
-  border-radius: 0.3em;
-  line-height: 1.5em;
-  /* white-space: pre;
-  word-spacing: normal;
-  word-break: normal;
-  word-wrap: normal;
-  tab-size: 4;
-  -moz-tab-size: 4;
-  -o-tab-size: 4;
-  hyphens: none;
-  -webkit-hyphens: none;
-  -moz-hyphens: none;
-  -ms-hyphens: none; */
-}

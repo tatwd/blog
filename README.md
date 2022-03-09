@@ -4,7 +4,10 @@ Dev (.net 6.0)
 
 ```sh
 # Generate files to dist/
-dotnet run
+dotnet run --project src/blog.csproj \
+    --posts ./posts \
+    --theme ./theme \
+    --dist ./dist
 
 # Preview by dotnet-serve or others
 dotnet serve --directory dist
