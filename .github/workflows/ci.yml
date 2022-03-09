@@ -70,7 +70,7 @@ jobs:
       run: dotnet ./out/blog.dll \
             --posts ./posts \
             --theme ./theme \
-            --theme ./dist \
+            --dist ./dist \
 
     - name: Deploy to Staging
       id: deploy-vercel-staging
