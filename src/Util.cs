@@ -7,7 +7,7 @@ public static class Util
 {
     public static string ReplaceWithspaceByLodash(string str)
     {
-        return string.Join("", str.Select(c => char.IsWhiteSpace(c) ? '_' : c));
+        return string.Join("", str.Trim().Select(c => char.IsWhiteSpace(c) ? '_' : c));
     }
 
     public static void CreateDirIfNotExsits(string distPath)
