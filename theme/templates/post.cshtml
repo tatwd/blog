@@ -26,7 +26,7 @@
     </div>
     <h1 class="font-sans">@Model.PostTitle</h1>
     <small class="text-light">
-      <span>@Model.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
+      <span>@Model.FrontMatter.CreateTime.ToString("MMMM d, yyyy")</span>
       •
       <span>@Util.FormatReadingTime(Model.TimeToRead)</span>
       @foreach (var tag in Model.FrontMatter.Tags)
@@ -38,7 +38,7 @@
   <main class="container" style="padding-top: 1.75rem;">
     <article>@Model.PostContent</article>
   </main>
-  <footer class="container text-light" style="padding-bottom: 2.5rem;padding-top: 2rem;">
+  <footer class="container text-light text-sm" style="padding-bottom: 2.5rem;padding-top: 2rem;">
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
     2017-PRESENT © @Model.BlogConfig.Author
   </footer>
