@@ -72,16 +72,23 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
             }
 
             foreach (var c in lineText)
-                if (c == '<')
-                    code.Append("&lt;");
-                else if (c == '>')
-                    code.Append("&gt;");
+            {
+                if (CharRemap.TryGetValue(c, out var s))
+                    code.Append(s);
                 else
                     code.Append(c);
+            }
         }
 
         return code.ToString();
     }
+
+    protected IDictionary<char, string> CharRemap = new Dictionary<char, string>
+    {
+        ['<'] = "&lt;",
+        ['>'] = "&gt;",
+        ['&'] = "&amp;"
+    };
 }
 
 
