@@ -13,6 +13,18 @@ public class MyPrismCodeBlockRendererTest
     }
 
     [Fact]
+    public void render_code_without_lang_ok()
+    {
+        var mdText = @"
+```
+hello world
+```";
+        var pipeline = CreateMarkdownPipeline();
+        var html = Markdown.ToHtml(mdText, pipeline);
+        Assert.Equal(@"<pre class=""language-plaintext""><code class=""language-text"">Hello world</code></pre>", html);
+    }
+
+    [Fact]
     public void render_html_code_ok()
     {
         var mdText = @"

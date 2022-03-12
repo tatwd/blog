@@ -30,8 +30,9 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
         var languageCode = fencedCodeBlock.Info;
         if (string.IsNullOrWhiteSpace(languageCode))
         {
-            _codeBlockRenderer.Write(renderer, node);
-            return;
+            languageCode = "plaintext";
+            // _codeBlockRenderer.Write(renderer, node);
+            // return;
         }
 
         var attributes = new HtmlAttributes();
@@ -51,7 +52,7 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
             .Write("</pre>");
     }
 
-    protected string ExtractSourceCode(LeafBlock node)
+    private string ExtractSourceCode(LeafBlock node)
     {
         var code = new StringBuilder();
         var lines = node.Lines.Lines;
@@ -73,7 +74,7 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 
             foreach (var c in lineText)
             {
-                if (CharRemap.TryGetValue(c, out var s))
+                if (_charRemap.TryGetValue(c, out var s))
                     code.Append(s);
                 else
                     code.Append(c);
@@ -83,7 +84,7 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
         return code.ToString();
     }
 
-    protected IDictionary<char, string> CharRemap = new Dictionary<char, string>
+    private readonly IDictionary<char, string> _charRemap = new Dictionary<char, string>
     {
         ['<'] = "&lt;",
         ['>'] = "&gt;",
