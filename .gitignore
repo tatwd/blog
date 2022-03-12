@@ -9,3 +9,5 @@ output/
 .vercel
 .ionide/
 .idea/
+*.user
+.fake
