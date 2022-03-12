@@ -297,36 +297,3 @@ async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
     }
     await sw.FlushAsync();
 }
-
-
-public class BlogConfig
-{
-    public string Title { get; set; } = null!;
-    public string Author { get; set; } = null!;
-    public string Description { get; set; } = null!;
-    public string Link { get; set; } = null!;
-    public string Email { get; set; } = null!;
-}
-
-public class PostViewModel
-{
-    public BlogConfig BlogConfig { get; set; } = null!;
-    public string PostContent { get; set; } = null!;
-    public int TimeToRead { get; set; }
-    public string AbstractText { get; set; } = null!;
-    public string PostRoute { get; set; } = null!;
-    public PostFrontMatterViewModel FrontMatter { get; set; } = null!;
-    public string PostTitle => FrontMatter.Title;
-}
-
-public class PostFrontMatterViewModel
-{
-    [YamlMember(Alias = "title")]
-    public string Title { get; set; } = null!;
-
-    [YamlMember(Alias = "create_time")]
-    public DateTime CreateTime { get; set; }
-
-    [YamlMember(Alias = "tags")]
-    public string[] Tags { get; set; } = Array.Empty<string>();
-}
