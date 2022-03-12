@@ -25,6 +25,15 @@
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
     2017-PRESENT © @Model.BlogConfig.Author
   </footer>
+  <script>
+    document.querySelector("article").addEventListener("click", function (evt) {
+      var target = evt.target;
+      var id = target.id;
+      if ("H2" === target.nodeName && id) {
+        location.hash = "#" + id
+      }
+    })
+  </script>
 </body>
 
 </html>

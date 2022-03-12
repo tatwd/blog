@@ -46,6 +46,20 @@ article h2::before {
   left: -15px;
 }
 
+table {
+  table-layout: fixed;
+  width: 100%;
+  word-wrap: break-word;
+  box-sizing: border-box;
+  border-collapse: collapse;
+}
+
+p kbd {
+  border: 1px solid #6666;
+  border-radius: 3px;
+  padding: 0.1em 0.5em;
+}
+
 /* blockquote */
 blockquote {
   --blockquote-border-left: 5px solid #e6e6e6;
@@ -74,4 +88,6 @@ article code:not([class*="language-"]) {
   font-family: var(--code-fonts);
   padding: 0.2em 0.5em;
   border-radius: 0.3em;
+  word-wrap: break-word;
+  text-transform: none;
 }
