@@ -17,7 +17,7 @@ public class MyPrismCodeBlockRendererTest
     {
         var mdText = @"
 ```
-hello world
+Hello world
 ```";
         var pipeline = CreateMarkdownPipeline();
         var html = Markdown.ToHtml(mdText, pipeline);
