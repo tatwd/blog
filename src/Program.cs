@@ -24,17 +24,19 @@ var blogConfig = new BlogConfig
 // --posts
 // --theme
 // --dist
+// --cwd => curent work directory
 var cmdArgs = new ConfigurationBuilder()
     .AddCommandLine(args)
     .Build();
 
-var cwd = Directory.GetCurrentDirectory();
+var cwd = (cmdArgs["cwd"] ?? Directory.GetCurrentDirectory()).TrimEnd('/').TrimEnd('\\');
 var distDir = cmdArgs["dist"] ?? $"{cwd}/dist";
 var postDir = cmdArgs["posts"] ?? $"{cwd}/posts";
 var themeDir = cmdArgs["theme"] ?? $"{cwd}/theme";
 var themeStyleDir = $"{themeDir}/styles";
 var themeTemplateDir = $"{themeDir}/templates";
 
+Console.WriteLine("cwd: {0}", cwd);
 Console.WriteLine("distDir: {0}", distDir);
 Console.WriteLine("postDir: {0}", postDir);
 Console.WriteLine("themeDir: {0}", themeDir);
@@ -130,7 +132,6 @@ foreach (var path in postFiles.AsParallel())
 
     using StreamWriter swPost = File.CreateText(htmlFile);
     await swPost.WriteAsync(result);
-
     Console.WriteLine("Generated: {0}/{1}", postRoute, htmlFileName);
 }
 
@@ -203,9 +204,66 @@ foreach (var path in otherThemeFiles.AsParallel())
     Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
 }
 
-// Generate atom.xml
+// Generate atom.xml fro all posts
 await WriteAtomFeedAync(posts, $"{distDir}/atom.xml");
 Console.WriteLine("Generated: /atom.xml");
+
+
+// Generate all SPA
+var spaTemplateContent = File.ReadAllText($"{themeTemplateDir}/spa.cshtml");
+var spaTemplate = await razorEngine.CompileAsync(spaTemplateContent);
+var spaDir = $"{cwd}/spa";
+var spaFiles = Directory.GetFiles(spaDir, "*", SearchOption.AllDirectories);
+foreach (var path in spaFiles.AsParallel())
+{
+    var newPath = path.Replace(spaDir, distDir);
+
+    // Do not copy any files in templates dir
+    if (!path.EndsWith(".md"))
+    {
+        Util.CreateDirIfNotExists(newPath);
+        File.Copy(path, newPath, true);
+        Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
+        continue;
+    }
+
+    var mdFileName = Path.GetFileName(newPath);
+    var htmlFile = newPath.Replace(".md", "/index.html");
+    var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, ""))!;
+
+
+    using var writer = new StringWriter();
+    var renderer = new HtmlRenderer(writer)
+    {
+        LinkRewriter = (link) =>
+        {
+            if (link.StartsWith("./"))
+                return postRoute + link.Substring(1);
+            return link;
+        }
+    };
+    pipeline.Setup(renderer);
+    var mdText = File.ReadAllText(path);
+    var document = MarkdownParser.Parse(mdText, pipeline);
+    renderer.Render(document);
+    writer.Flush();
+    var html = writer.ToString();
+
+    var spaViewModel = new
+    {
+        PageTitle = mdFileName,
+        PageContent = html,
+        BlogConfig = blogConfig
+    };
+    var result = spaTemplate.Run(spaViewModel);
+
+    Util.CreateDirIfNotExists(htmlFile);
+    using StreamWriter swPost = File.CreateText(htmlFile);
+    await swPost.WriteAsync(result);
+    Console.WriteLine("Generated: {0}/index.html", postRoute);
+
+}
+
 
 
 async Task SaveRenderedRazorPageAsync(IRazorEngineCompiledTemplate template, string distPath, object? model = null)
