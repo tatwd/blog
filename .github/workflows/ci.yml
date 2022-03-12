@@ -31,9 +31,7 @@ jobs:
       run: dotnet test --no-restore
     - name: Generate blog files
       run: dotnet run --project src/blog.csproj \
-            --posts ./posts \
-            --theme ./theme \
-            --theme ./dist \
+            --cwd ./ \
             --no-build \
             --verbosity normal
 
@@ -67,10 +65,7 @@ jobs:
     - name: Publish release
       run: dotnet publish -c Release -o out --no-build
     - name: Generate blog files
-      run: dotnet ./out/blog.dll \
-            --posts ./posts \
-            --theme ./theme \
-            --dist ./dist \
+      run: dotnet ./out/blog.dll --cwd ./
 
     - name: Deploy to Staging
       id: deploy-vercel-staging
