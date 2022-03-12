@@ -25,4 +25,26 @@ It will create a `.vercel` directory with a config file named `project.json`, an
 
 ## Config GitHub Actions
 
+Add job steps like this:
 
+```yml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    # Other steps, just like build, test or etc.
+
+    - name: Deploy to vercel
+      id: deploy-vercel-staging
+      uses: amondnet/vercel-action@v20
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod' # if not set will deploy to Staging
+        working-directory: ./dist # website directory
+        scope: ${{ secrets.VERCEL_ORG_ID }}
+```
+
+A full example to see [here](https://github.com/tatwd/blog/blob/main/.github/workflows/ci.yml).
