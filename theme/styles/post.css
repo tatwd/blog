@@ -46,6 +46,28 @@ article h2::before {
   left: -15px;
 }
 
+/* blockquote */
+blockquote {
+  --blockquote-border-left: 5px solid #e6e6e6;
+  --blockquote-font-size: 17px;
+  --blockquote-style: italic;
+  --blockquote-color: #999;
+
+  margin: 2em 0;
+  padding-left: 16px;
+  border-left: var(--blockquote-border-left);
+}
+
+blockquote p {
+  font-size: var(--blockquote-font-size);
+  font-style: var(--blockquote-style);
+  color: var(--blockquote-color);
+}
+
+blockquote footer cite {
+  word-break: break-word;
+}
+
 /* TODO: 代码高亮需要引入 prism.css 暂时这样 */
 article code:not([class*="language-"]) {
   background-color: var(--code-bgcolor);

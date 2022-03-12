@@ -24,7 +24,7 @@ var blogConfig = new BlogConfig
 // --posts
 // --theme
 // --dist
-// --cwd => curent work directory
+// --cwd => current work directory
 var cmdArgs = new ConfigurationBuilder()
     .AddCommandLine(args)
     .Build();
@@ -49,6 +49,7 @@ var pipeline = new MarkdownPipelineBuilder()
     .UseAdvancedExtensions()
     .UseYamlFrontMatter()
     .UsePreciseSourceLocation()
+    .UseSoftlineBreakAsHardlineBreak()
     .Use<MyPrismExtension>()
     .Build();
 var yamlDeserializer = new DeserializerBuilder()

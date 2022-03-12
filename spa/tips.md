@@ -306,7 +306,7 @@ db.createUser(
 
 ## mongo db use admin create
 
-```
+```sh
 use admin
 db.createUser(
   {
@@ -332,11 +332,11 @@ visit it on `http://localhost:15672/` default username and password is `guest`
 ## MySQL
 
 初次启动
-```
+```sh
 bin\mysqld --initialize
 ```
 修改密码
-```
+```sh
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
 ```
 
@@ -394,7 +394,6 @@ c:\mysymbols;srv*c:\cachesymbols*https://msdl.microsoft.com/download/symbols
 
 然后，在 windbg 中执行以下命令加载符号（注意保持网络通畅）
 ```txt
-
 .reload [-f]
 ```
 
