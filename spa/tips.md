@@ -14,7 +14,6 @@ $dir =  "dll文件所在目录"
 $dll = "$dir\dll文件名称.dll"
 $config = "$dir\dll文件名称.config"
 
-
 #[AppDomain]::CurrentDomain.SetData("APPBASE", $dir)
 [AppDomain]::CurrentDomain.SetData("APP_CONFIG_FILE", $config)
 
@@ -22,8 +21,6 @@ $config = "$dir\dll文件名称.config"
 [Configuration.ConfigurationManager].GetField("s_initState", "NonPublic, Static").SetValue($null, 0)
 [Configuration.ConfigurationManager].GetField("s_configSystem", "NonPublic, Static").SetValue($null, $null)
 ([Configuration.ConfigurationManager].Assembly.GetTypes() | where {$_.FullName -eq "System.Configuration.ClientConfigPaths"})[0].GetField("s_current", "NonPublic, Static").SetValue($null, $null)
-
-
 
 #加载对应程序集
 Import-Module $dll
@@ -58,11 +55,8 @@ $SqlConn.open()
 #$SqlCmd = New-Object System.Data.SqlClient.SqlCommand
 $SqlCmd = $SqlConn.CreateCommand()
 $SqlCmd.commandtext = "
-
-select @@version
-
+  select @@version
 "
-
 
 $SqlAdapter = New-Object System.Data.SqlClient.SqlDataAdapter
 $SqlAdapter.SelectCommand = $SqlCmd
@@ -85,17 +79,12 @@ $uri = "http://localhost:2074/service"
 $srv = New-WebServiceProxy -Uri $uri -UseDefaultCredential
 
 try {
-
-#调用对应函数
-$ret = $srv.方法名(参数列表)
-echo $ret
-
+  #调用对应函数
+  $ret = $srv.方法名(参数列表)
+  echo $ret
 } finally {
-$srv.Abort()
+  $srv.Abort()
 }
-
-
-
 ```
 
 ## AspNetCore 快速配置 Serilog
@@ -301,10 +290,7 @@ db.createUser(
 )
 ```
 
-
-
-
-## mongo db use admin create
+4.use admin create
 
 ```sh
 use admin
