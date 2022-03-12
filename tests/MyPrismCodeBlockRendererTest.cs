@@ -21,7 +21,7 @@ hello world
 ```";
         var pipeline = CreateMarkdownPipeline();
         var html = Markdown.ToHtml(mdText, pipeline);
-        Assert.Equal(@"<pre class=""language-plaintext""><code class=""language-text"">Hello world</code></pre>", html);
+        Assert.Equal(@"<pre class=""language-plaintext""><code class=""language-plaintext"">Hello world</code></pre>", html);
     }
 
     [Fact]
