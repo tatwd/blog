@@ -5,12 +5,12 @@ namespace MyBlog;
 
 public static class Util
 {
-    public static string ReplaceWithspaceByLodash(string str)
+    public static string ReplaceWhiteSpaceByLodash(string str)
     {
         return string.Join("", str.Trim().Select(c => char.IsWhiteSpace(c) ? '_' : c));
     }
 
-    public static void CreateDirIfNotExsits(string distPath)
+    public static void CreateDirIfNotExists(string distPath)
     {
         var dir = Path.GetDirectoryName(distPath);
         if (string.IsNullOrEmpty(dir))

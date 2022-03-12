@@ -68,7 +68,7 @@ var postFiles = Directory.GetFiles(postDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
     var newPath = path.Replace(postDir, $"{distDir}/posts");
-    Util.CreateDirIfNotExsits(newPath);
+    Util.CreateDirIfNotExists(newPath);
 
     // Copy other files to dist, just like images etc.
     if (!newPath.EndsWith(".md"))
@@ -184,7 +184,7 @@ foreach (var(tagName, postsWithSameTag) in mapTags)
         TagName = tagName,
         Posts = postsWithSameTag.OrderByDescending(p => p.FrontMatter.CreateTime)
     };
-    var newTagRoute = $"/tags/{Util.ReplaceWithspaceByLodash(tagName)}/index.html";
+    var newTagRoute = $"/tags/{Util.ReplaceWhiteSpaceByLodash(tagName)}/index.html";
     await SaveRenderedRazorPageAsync(themeTagTemplate, $"{distDir}{newTagRoute}", model);
     Console.WriteLine("Generated: {0}", newTagRoute);
 }
@@ -198,7 +198,7 @@ foreach (var path in otherThemeFiles.AsParallel())
         continue;
 
     var newPath = path.Replace(themeDir, distDir);
-    Util.CreateDirIfNotExsits(newPath);
+    Util.CreateDirIfNotExists(newPath);
     File.Copy(path, newPath, overwrite : true);
     Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
 }
@@ -210,7 +210,7 @@ Console.WriteLine("Generated: /atom.xml");
 
 async Task SaveRenderedRazorPageAsync(IRazorEngineCompiledTemplate template, string distPath, object? model = null)
 {
-    Util.CreateDirIfNotExsits(distPath);
+    Util.CreateDirIfNotExists(distPath);
 
     var html = template.Run(model);
     using StreamWriter sw = File.CreateText(distPath);
@@ -256,7 +256,7 @@ PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
 
 async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
 {
-    Util.CreateDirIfNotExsits(distPath);
+    Util.CreateDirIfNotExists(distPath);
 
     using StreamWriter sw = File.CreateText(distPath);
 

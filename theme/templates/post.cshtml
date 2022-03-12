@@ -31,7 +31,7 @@
       <span>@Util.FormatReadingTime(Model.TimeToRead)</span>
       @foreach (var tag in Model.FrontMatter.Tags)
       {
-        <a class="hover-underline" href="/tags/@Util.ReplaceWithspaceByLodash(tag)/">#@tag</a>
+        <a class="hover-underline" href="/tags/@Util.ReplaceWhiteSpaceByLodash(tag)/">#@tag</a>
       }
     </small>
   </header>
