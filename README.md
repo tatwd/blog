@@ -6,6 +6,7 @@ Dev (.net 6.0)
 # Generate files to dist/
 # or ./build.sh
 dotnet run --project src/blog.csproj \
+    --cwd ./ \
     --posts ./posts \
     --theme ./theme \
     --dist ./dist
