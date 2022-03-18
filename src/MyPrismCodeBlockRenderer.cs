@@ -4,6 +4,8 @@ using Markdig.Parsers;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
+using PrismSharp.Core;
+using PrismSharp.Highlighting.HTML;
 
 namespace MyBlog;
 
@@ -38,7 +40,7 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
         var attributes = new HtmlAttributes();
         attributes.AddClass($"language-{languageCode}");
 
-        var code = ExtractSourceCode(node);
+        var code = HighlightCode(node, languageCode);
 
         renderer
             .Write("<pre")
@@ -50,6 +52,33 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
             .Write(code)
             .Write("</code>")
             .Write("</pre>");
+    }
+
+    private string HighlightCode(LeafBlock node, string language)
+    {
+        if (new []{ "c", "cpp", "c++" }.Contains(language))
+            return HighlightCode(node, LanguageGrammars.C, language);
+
+        if (new []{ "csharp", "c#" }.Contains(language))
+            return HighlightCode(node, LanguageGrammars.CSharp, language);
+
+        if (new []{ "js", "javascript" }.Contains(language))
+            return HighlightCode(node, LanguageGrammars.JavaScript, language);
+
+        if (new []{ "html", "aspx" }.Contains(language))
+            return HighlightCode(node, LanguageGrammars.Markup, language);
+
+        if (new []{ "lua" }.Contains(language))
+            return HighlightCode(node, LanguageGrammars.CLike, language);
+
+        return ExtractSourceCode(node);
+    }
+
+    private string HighlightCode(LeafBlock node, Grammar grammar, string language)
+    {
+        var text = node.Lines.ToString();
+        var highlighter = new HtmlHighlighter();
+        return highlighter.Highlight(text, grammar, language);
     }
 
     private string ExtractSourceCode(LeafBlock node)
