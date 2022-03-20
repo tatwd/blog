@@ -12,7 +12,7 @@ namespace MyBlog;
 
 public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 {
-    private readonly IReadOnlyDictionary<string, Grammar> _supportedGrammarMap = new Dictionary<string, Grammar>
+    private static readonly IReadOnlyDictionary<string, Grammar> SupportedGrammarMap = new Dictionary<string, Grammar>
     {
         ["c"] = LanguageGrammars.C,
         ["cpp"] = LanguageGrammars.C,
@@ -77,7 +77,7 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 
     private string HighlightCode(LeafBlock node, string language)
     {
-        if (_supportedGrammarMap.TryGetValue(language, out var grammar))
+        if (SupportedGrammarMap.TryGetValue(language, out var grammar))
             return HighlightCode(node, grammar, language);
 
         return ExtractSourceCode(node);
