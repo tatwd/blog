@@ -29,6 +29,11 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
         ["asp"] = LanguageGrammars.AspNet,
         ["aspnet"] = LanguageGrammars.AspNet,
         ["sql"] = LanguageGrammars.Sql,
+        ["json"] = LanguageGrammars.Json,
+        ["yaml"] = LanguageGrammars.Yaml,
+        ["yml"] = LanguageGrammars.Yaml,
+        ["powershell"] = LanguageGrammars.PowerShell,
+        ["ps1"] = LanguageGrammars.PowerShell,
         ["lua"] = LanguageGrammars.CLike
     };
 
