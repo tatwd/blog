@@ -112,7 +112,7 @@ ajax(url, settings)
 新建一个 ASP.NET Web Forms 空网站，添加 2 个 Web 窗体页面（如：Client.aspx、Server.aspx）。
 
 Client.aspx
-``` html
+``` aspnet
 <form id="form1" runat="server">
   <div>
     <a id="btn">test btn</a>
@@ -180,7 +180,7 @@ protected void GetDataById()
 使用 `Web Service` 属性来编写服务端代码。新建一个 ASP.NET Web Forms 空网站，添加 1 个 Web 窗体页面（如：Index.aspx）。
 
 Index.aspx
-``` html
+``` aspnet
 ...
 <script>
   document.querySelector('#btn').addEventListener('click', () => {
