@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Markdig;
 using Markdig.Parsers;
@@ -11,6 +12,26 @@ namespace MyBlog;
 
 public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 {
+    private readonly IReadOnlyDictionary<string, Grammar> _supportedGrammarMap = new Dictionary<string, Grammar>
+    {
+        ["c"] = LanguageGrammars.C,
+        ["cpp"] = LanguageGrammars.C,
+        ["c++"] = LanguageGrammars.C,
+        ["csharp"] = LanguageGrammars.CSharp,
+        ["c#"] = LanguageGrammars.CSharp,
+        ["cs"] = LanguageGrammars.CSharp,
+        ["dotnet"] = LanguageGrammars.CSharp,
+        ["js"] = LanguageGrammars.JavaScript,
+        ["javascript"] = LanguageGrammars.JavaScript,
+        ["html"] = LanguageGrammars.Html,
+        ["xml"] = LanguageGrammars.Xml,
+        ["aspx"] = LanguageGrammars.AspNet,
+        ["asp"] = LanguageGrammars.AspNet,
+        ["aspnet"] = LanguageGrammars.AspNet,
+        ["sql"] = LanguageGrammars.Sql,
+        ["lua"] = LanguageGrammars.CLike
+    };
+
     private readonly CodeBlockRenderer _codeBlockRenderer;
 
     public MyPrismCodeBlockRenderer()
@@ -56,27 +77,7 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 
     private string HighlightCode(LeafBlock node, string language)
     {
-        var supportedGrammarMap = new Dictionary<string, Grammar>
-        {
-            ["c"] = LanguageGrammars.C,
-            ["cpp"] = LanguageGrammars.C,
-            ["c++"] = LanguageGrammars.C,
-            ["csharp"] = LanguageGrammars.CSharp,
-            ["c#"] = LanguageGrammars.CSharp,
-            ["cs"] = LanguageGrammars.CSharp,
-            ["dotnet"] = LanguageGrammars.CSharp,
-            ["js"] = LanguageGrammars.JavaScript,
-            ["javascript"] = LanguageGrammars.JavaScript,
-            ["html"] = LanguageGrammars.Html,
-            ["xml"] = LanguageGrammars.Xml,
-            ["aspx"] = LanguageGrammars.AspNet,
-            ["asp"] = LanguageGrammars.AspNet,
-            ["aspnet"] = LanguageGrammars.AspNet,
-            ["sql"] = LanguageGrammars.Sql,
-            ["lua"] = LanguageGrammars.CLike
-        };
-
-        if (supportedGrammarMap.TryGetValue(language, out var grammar))
+        if (_supportedGrammarMap.TryGetValue(language, out var grammar))
             return HighlightCode(node, grammar, language);
 
         return ExtractSourceCode(node);
@@ -86,7 +87,15 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
     {
         var text = node.Lines.ToString();
         var highlighter = new HtmlHighlighter();
-        return highlighter.Highlight(text, grammar, language);
+#if DEBUG
+        var sw = Stopwatch.StartNew();
+#endif
+        var html = highlighter.Highlight(text, grammar, language);
+#if DEBUG
+        sw.Stop();
+        Console.WriteLine($"DEBUG: highlighter.Highlight took {sw.ElapsedMilliseconds}ms for `{language}` code.");
+#endif
+        return html;
     }
 
     private string ExtractSourceCode(LeafBlock node)
