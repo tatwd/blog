@@ -56,20 +56,28 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 
     private string HighlightCode(LeafBlock node, string language)
     {
-        if (new []{ "c", "cpp", "c++" }.Contains(language))
-            return HighlightCode(node, LanguageGrammars.C, language);
+        var supportedGrammarMap = new Dictionary<string, Grammar>
+        {
+            ["c"] = LanguageGrammars.C,
+            ["cpp"] = LanguageGrammars.C,
+            ["c++"] = LanguageGrammars.C,
+            ["csharp"] = LanguageGrammars.CSharp,
+            ["c#"] = LanguageGrammars.CSharp,
+            ["cs"] = LanguageGrammars.CSharp,
+            ["dotnet"] = LanguageGrammars.CSharp,
+            ["js"] = LanguageGrammars.JavaScript,
+            ["javascript"] = LanguageGrammars.JavaScript,
+            ["html"] = LanguageGrammars.Html,
+            ["xml"] = LanguageGrammars.Xml,
+            ["aspx"] = LanguageGrammars.AspNet,
+            ["asp"] = LanguageGrammars.AspNet,
+            ["aspnet"] = LanguageGrammars.AspNet,
+            ["sql"] = LanguageGrammars.Sql,
+            ["lua"] = LanguageGrammars.CLike
+        };
 
-        if (new []{ "csharp", "c#" }.Contains(language))
-            return HighlightCode(node, LanguageGrammars.CSharp, language);
-
-        if (new []{ "js", "javascript" }.Contains(language))
-            return HighlightCode(node, LanguageGrammars.JavaScript, language);
-
-        if (new []{ "html", "aspx" }.Contains(language))
-            return HighlightCode(node, LanguageGrammars.Markup, language);
-
-        if (new []{ "lua" }.Contains(language))
-            return HighlightCode(node, LanguageGrammars.CLike, language);
+        if (supportedGrammarMap.TryGetValue(language, out var grammar))
+            return HighlightCode(node, grammar, language);
 
         return ExtractSourceCode(node);
     }
