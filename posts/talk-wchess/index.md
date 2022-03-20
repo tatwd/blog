@@ -5,7 +5,7 @@ tags:
   - 技术笔记
 ---
 
-打算写这个游戏的想法不是“蓄谋已久”的，它不过是为了完成作业而作出来的产物。虽然到目前为止，它还有许多的不足，但至少没有“胎死腹中”。（有兴趣的朋友可以下来玩玩：[点我下载](https://github.com/tatwd/watermelon-chess/raw/master/wiki-resources/downloads/watermelon-chess-1.6.1-install.exe)）
+打算写这个游戏的想法不是“蓄谋已久”的，它不过是为了完成作业而作出来的产物。虽然到目前为止，它还有许多的不足，但至少没有“胎死腹中”。<!--（有兴趣的朋友可以下来玩玩：[点我下载](https://github.com/tatwd/watermelon-chess/raw/master/wiki-resources/downloads/watermelon-chess-1.6.1-install.exe)）-->
 
 ![talk-wchess-0](./talk-wchess-0.png)
 
@@ -157,4 +157,4 @@ Step* SingleGame::getBestStep()
 
 总而言之，从预期来说，大部分功能已经实现，目前还未解决的问题还有两个：1)死子判断算法的完善；2)价值评估算法的优化。以后有可能的话，希望能实现联机模式，但到底可不可能，谁知道呢？
 
-> 项目源代码： https://github.com/tatwd/watermelon-chess/tree/master/source
+项目地址： https://github.com/tatwd/watermelon-chess
