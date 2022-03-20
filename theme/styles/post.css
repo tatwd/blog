@@ -70,6 +70,7 @@ blockquote {
   margin: 2em 0;
   padding-left: 16px;
   border-left: var(--blockquote-border-left);
+  word-break: break-word;
 }
 
 blockquote p {
@@ -78,9 +79,9 @@ blockquote p {
   color: var(--blockquote-color);
 }
 
-blockquote footer cite {
+/* blockquote footer cite {
   word-break: break-word;
-}
+} */
 
 /* TODO: 代码高亮需要引入 prism.css 暂时这样 */
 article code:not([class*="language-"]) {
