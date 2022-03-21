@@ -4,6 +4,17 @@ title: My Tips
 
 记录我的个人 code 片段
 
+## Set Folder Link in `csproj`
+> 2022-03-21
+
+```xml
+<ItemGroup>
+  <None Include="..\otherfolder\**\*">
+    <Link>myfolder\%(RecursiveDir)/%(FileName)%(Extension)</Link>
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
+```
 
 
 ## Load assembly from file and read config file ok
