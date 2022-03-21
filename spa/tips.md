@@ -108,13 +108,13 @@ Startup.cs
 
 ```csharp
 public static IHostBuilder CreateHostBuilder(string[] args) =>
-	Host.CreateDefaultBuilder(args)
-		.UseSerilog((hostBuilderContext, loggerConfiguration) => loggerConfiguration
-			.ReadFrom.Configuration(hostBuilderContext.Configuration))
-		.ConfigureWebHostDefaults(webBuilder =>
-		{
-			webBuilder.UseStartup<Startup>();
-		});
+  Host.CreateDefaultBuilder(args)
+    .UseSerilog((hostBuilderContext, loggerConfiguration) => loggerConfiguration
+      .ReadFrom.Configuration(hostBuilderContext.Configuration))
+    .ConfigureWebHostDefaults(webBuilder =>
+    {
+      webBuilder.UseStartup<Startup>();
+    });
 ```
 
 appsettings.json
@@ -303,7 +303,7 @@ db.createUser(
 
 4.use admin create
 
-```sh
+```js
 use admin
 db.createUser(
   {
@@ -346,11 +346,11 @@ bin\mysqld --install MySQL --defaults-file=D:\devtools\mysql-5.7.31-winx64\my.cn
 
 ## ASP.NET Core 模块的托管模式
 
-1. 2.1 只支持进程外
+2.1 只支持进程外
 
 > [ASP.NET Core 2.1 模块](https://docs.microsoft.com/zh-cn/aspnet/core/host-and-deploy/aspnet-core-module?view=aspnetcore-2.1)
 
-2. 3.1 支持进程外和进程内（从3.0开始引入）
+3.1 支持进程外和进程内（从3.0开始引入）
 
 默认使用进程内
 
