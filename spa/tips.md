@@ -7,6 +7,8 @@ title: My Tips
 ## Set Folder Link in `csproj`
 > 2022-03-21
 
+Make `myfolder` link to `..\otherfolder`:
+
 ```xml
 <ItemGroup>
   <None Include="..\otherfolder\**\*">
