@@ -4,6 +4,31 @@ title: My Tips
 
 记录我的个人 code 片段
 
+## 季度相关操作
+
+获取对应日期季度编号：
+```csharp
+private static int GetQuarterNum(DateTime date)
+{
+    var (d, r) =  Math.DivRem(date.Month, 3);
+    return r == 0 ? r : d + 1;
+}
+```
+
+获取对应日期之后的下一季度的开始日期：
+
+```csharp
+private static DateTime NextQuarterStartDate(DateTime date)
+{
+    var q =  GetQuarterNum(date);
+    var r = (q * 3 + 1) % 12;
+    var nextQuarterStartMonth = r == 0 ? 1 : r;
+    var nextYear = nextQuarterStartMonth < date.Month ? date.Year + 1 : date.Year;
+    return new DateTime(nextYear, nextQuarterStartMonth, 1);
+}
+```
+
+
 ## Set Folder Link in `csproj`
 > 2022-03-21
 
