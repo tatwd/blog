@@ -213,6 +213,9 @@ Console.WriteLine("Generated: /atom.xml");
 // Generate all SPA
 var spaTemplateContent = File.ReadAllText($"{themeTemplateDir}/spa.cshtml");
 var spaTemplate = await razorEngine.CompileAsync(spaTemplateContent);
+var aboutTemplateContent = File.ReadAllText($"{themeTemplateDir}/about.cshtml");
+var aboutTemplate = await razorEngine.CompileAsync(aboutTemplateContent);
+
 var spaDir = $"{cwd}/spa";
 var spaFiles = Directory.GetFiles(spaDir, "*", SearchOption.AllDirectories);
 foreach (var path in spaFiles.AsParallel())
@@ -246,17 +249,22 @@ foreach (var path in spaFiles.AsParallel())
     pipeline.Setup(renderer);
     var mdText = File.ReadAllText(path);
     var document = MarkdownParser.Parse(mdText, pipeline);
+    var postFrontMatter = GetPostFrontMatter(document);
     renderer.Render(document);
     writer.Flush();
     var html = writer.ToString();
 
     var spaViewModel = new
     {
-        PageTitle = mdFileName,
+        PageTitle = postFrontMatter.Title,
         PageContent = html,
         BlogConfig = blogConfig
     };
-    var result = spaTemplate.Run(spaViewModel);
+
+    // TODO: need refactor
+    var result = "about" == postFrontMatter.TemplateName
+        ? aboutTemplate.Run(spaViewModel)
+        : spaTemplate.Run(spaViewModel);
 
     Util.CreateDirIfNotExists(htmlFile);
     using StreamWriter swPost = File.CreateText(htmlFile);

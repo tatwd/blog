@@ -12,4 +12,7 @@ public class PostFrontMatterViewModel
 
     [YamlMember(Alias = "tags")]
     public string[] Tags { get; set; } = Array.Empty<string>();
+
+    [YamlMember(Alias = "template")]
+    public string? TemplateName { get; set; }
 }
