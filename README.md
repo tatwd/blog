@@ -12,5 +12,6 @@ dotnet run --project src/blog.csproj \
     --dist ./dist
 
 # Preview by dotnet-serve or others
+dotnet tool restore
 dotnet serve --directory dist
 ```
