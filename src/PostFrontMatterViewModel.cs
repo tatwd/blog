@@ -15,4 +15,7 @@ public class PostFrontMatterViewModel
 
     [YamlMember(Alias = "template")]
     public string? TemplateName { get; set; }
+
+    [YamlMember(Alias = "draft")]
+    public bool Draft { get; set; }
 }

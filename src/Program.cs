@@ -35,11 +35,13 @@ var postDir = cmdArgs["posts"] ?? $"{cwd}/posts";
 var themeDir = cmdArgs["theme"] ?? $"{cwd}/theme";
 var themeStyleDir = $"{themeDir}/styles";
 var themeTemplateDir = $"{themeDir}/templates";
+var isDev = !string.IsNullOrEmpty(cmdArgs["dev"]);
 
 Console.WriteLine("cwd: {0}", cwd);
 Console.WriteLine("distDir: {0}", distDir);
 Console.WriteLine("postDir: {0}", postDir);
 Console.WriteLine("themeDir: {0}", themeDir);
+Console.WriteLine("isDev: {0}", isDev);
 
 if (Directory.Exists(distDir))
     Directory.Delete(distDir, true);
@@ -101,6 +103,11 @@ foreach (var path in postFiles.AsParallel())
     var mdText = File.ReadAllText(path);
     var document = MarkdownParser.Parse(mdText, pipeline);
     var postFrontMatter = GetPostFrontMatter(document);
+
+    // Do not  publish draft item if env is not development.
+    if (!isDev && postFrontMatter.Draft)
+        continue;
+
     renderer.Render(document);
     writer.Flush();
     var html = writer.ToString();
