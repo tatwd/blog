@@ -1,8 +1,8 @@
 :root {
   --bg-color: #f6f8fa;
   --code-color: #666;
-  --code-fonts: "SFMono-Regular", Consolas, Monaco, Menlo, "Andale Mono",
-    "Ubuntu Mono", monospace;
+  --code-fonts: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
   --code-size: 13px;
 }
 
