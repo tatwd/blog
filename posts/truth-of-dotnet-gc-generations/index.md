@@ -54,7 +54,15 @@ enum gc_generation_num
 
 ## POH 的分代
 
-POH 是 .NET 5 新增加的，我们可以说它也是一种迁就化的设计，实际上它存在 LOH 上。故而，运行时团队将 POH 和 LOH 统称叫 UOH（User Old Heap）。
+POH 是 .NET 5 新增加的，我们可以说它也是一种迁就化的设计，虽然分代是 gen4，但实际上它存在 LOH 上。故而，运行时团队将 POH 和 LOH 统称叫 UOH（User Old Heap）。
+
+## 总结
+
+可以用下图表示：
+
+![GC Generations](gc-generations.png)
+
+GC 在回收垃圾时，分代管理（代间转移）只发生在 SOH 上，只有在对 gen2 进行回收时才会同时对 LOH 进行垃圾回收。
 
 
 ## 参考资料
