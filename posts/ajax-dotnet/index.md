@@ -22,38 +22,32 @@ tags:
  * @param {Object} settings 参数配置
  * @returns {Promise} 包含数据的 Promise 对象
  */
-const ajax = function (url, settings = {}) => {
+function ajax(url, settings = {}) {
   // set default values
   const {
-    method = 'GET',
-    responseType = '',
+    method = "GET",
+    responseType = "",
     header = {},
     timeout = 0,
-    isAsync = true
+    isAsync = true,
     data = null,
   } = settings;
 
-  // get XMLHttpRequest object
-  let getXhr = () =>
-    new XMLHttpRequest() || new ActiveXObject("Microsoft.XMLHTTP");
-
-  // use to format response data
+  // Used to format response data
   class DataFormator {
     constructor(data) {
       this._data = data;
     }
 
-    getJson () {
-      let __data = typeof this._data === 'object'
-        ? this._data
-        : JSON.parse(this._data);
+    getJson() {
+      const data =
+        typeof this._data === "object" ? this._data : JSON.parse(this._data);
 
-      return __data === null
-        ? __data
-        : (__data.d && __data.d !== '' ? JSON.parse(__data.d) : __data);
+      // `data.d` only for aspnet web serice
+      return data && data.d ? JSON.parse(data.d) : data;
     }
 
-    getText () {
+    getText() {
       return this._data;
     }
 
@@ -61,16 +55,15 @@ const ajax = function (url, settings = {}) => {
   }
 
   return new Promise((resolve, reject) => {
-    const xhr = getXhr();
+    const xhr = new XMLHttpRequest() || new ActiveXObject("Microsoft.XMLHTTP");
 
     xhr.open(method, url, isAsync);
-
     xhr.onreadystatechange = function () {
       if (this.readyState !== 4) return;
 
       this.status === 200
         ? resolve(new DataFormator(this.response))
-        : reject(new Error(this.statusText))
+        : reject(new Error(this.statusText));
     };
 
     xhr.responseType = responseType;
