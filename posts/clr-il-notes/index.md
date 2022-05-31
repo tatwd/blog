@@ -50,11 +50,55 @@ IL 是基于指令的，它通过一系列的指令来完成上层语言需要�
 
 ## 装箱和拆箱
 
-指令：`box`、`unbox`、`unbox.any`。
+涉及指令：`box`、`unbox`、`unbox.any`。
+
+`box` 会发送内存分配（可能发生 GC），属于昂贵的操作，应尽量避免。例如，对于下面发生的字符串插值在 .NET 5 以下版本会发生装箱。
+
+```csharp
+int foo = 101;
+string str = $"hello {foo}";
+```
+对应的 IL 代码可能如下：
+
+```il
+IL_000d: ldstr        "hello {0}"
+IL_0012: ldloc.1      // foo
+IL_0013: box          [System.Runtime]System.Int32
+IL_0018: call         string [System.Runtime]System.String::Format(string, object)
+```
 
 `unbox` 返回堆栈的是一个指向拆箱后值类型数据的地址。`unbox.any` 则返回的是实际的值类型数据。拆箱的过程会发生 null 检查和类型检查，并且只能对已装箱的数据作拆箱。
 
-<!-- ## 方法调度 -->
+
+## 方法调用
+
+涉及指令：`call`、`callvirt`。
+
+`call` 执行静态调用，一般是发生在静态方法或非虚方法上。
+
+`callvirt` 执行动态调用，根据引用变量指向的对象类型来调用方法，会发生递归调用，这个过程会发生引用检查，因此为了类型安全，一般引用类型中调用非虚方法也会使用到这个指令，否则下列代码会被正确执行（岂不荒谬！）。
+
+```csharp
+var foo = new Foo();
+foo = null;
+foo.Hello();
+```
+
+密封类型的引用调用虚方法时，采用 `call` 调用可以减少 `callvirt` 进行类型检查的时间，提高调用性能。
+
+值类型调用虚方法时，因为值类型首先是密封的，其次 `call` 调用可以阻止值类型被执行装箱。
+
+基类调用虚方法时，采用 `call` 可以避免 `callvirt` 递归调用本身引起的堆栈溢出。常见的覆写例如，实现 `System.Object` 的虚方法 `Equals()`、`ToString()` 时，就采用 `call` 调用方式。
+
+```csharp
+int num = 101;
+num.ToString();
+```
+
+上面代码中，调用 `ToString()` 采用的就是 `call` 指令，因为 `System.Int32` 覆写了 `System.Object` 的 `ToString()` 方法。
+
+
+总之，`call` 指令调用静态类型、声明类型的方法，而 `callvirt` 调用动态类型、实际类型的方法。
 
 
 > 未完待续
