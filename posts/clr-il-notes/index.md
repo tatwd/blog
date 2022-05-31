@@ -58,7 +58,7 @@ IL 是基于指令的，它通过一系列的指令来完成上层语言需要�
 int foo = 101;
 string str = $"hello {foo}";
 ```
-对应的 IL 代码可能如下：
+对应的 IL 代码可能如下（.NET 6 以下）：
 
 ```il
 IL_000d: ldstr        "hello {0}"
