@@ -37,7 +37,7 @@ enum gc_generation_num
 };
 ```
 
-当我们调用 `GC.MaxGeneration` 时，其结果一情况下，返回的就是这个枚举的 `max_generation` 值，亦即最大代数是 2。
+当我们调用 `GC.MaxGeneration` 时，其结果一情况下，返回的就是这个枚举的 `max_generation` 值，亦即最大代数是 2（zero-base）。
 
 
 ## SOH、LOH 的分代
