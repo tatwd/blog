@@ -42,25 +42,22 @@ void Board::paintEvent(QPaintEvent *)
 于是乎，遍历问题便不难了:
 
 ``` cpp
-... ...
 /*获取棋盘上点的极坐标*/
 void Board::getAROfBoard(int pos, int &angle, int &r)
 {
   angle = 0;
   r = 0;
-  if(pos>=0 && pos<=11)       //第0~11个点，即第1圈
-  {
-    angle = pos*30;
+
+  if (pos >= 0 && pos <= 11) { // 0~11第1圈
+    angle = pos * 30;
     r = _R;
+  } else if (pos >= 12 && pos <= 15) { // 12~15第2圈
+    angle = (pos % 4) * 90;
+    r = _R * 13 / 18;
+  } else if (pos >= 16 && pos <= 19) { // 16~19第3圈
+    angle = (pos % 4) * 90;
+    r = _R / 3;
   }
-  else if(pos>=12 && pos<=19) //第12~19个点，即第2、3圈
-  {
-    angle = (pos%4) * 90;
-    r = _R*13/18;
-    if(pos>15)
-      r = _R/3;
-  }
-  //中心点（即第4圈）为(0, 0)
 }
 
 /*遍历棋盘所有的点并返回该点pos的像素坐标*/
@@ -70,42 +67,50 @@ QPoint Board::getPointOfBoard(int pos, int &angle, int &r)
   getAROfBoard(pos, angle, r); //获取该点的极坐标
   return polarCoordToXY(bCenter, angle, r);  //将极坐标转成像素坐标
 }
-... ...
 ```
 
 ## 死子判断
 
-在解决了这个问题之后，我又迎来了第3个大问题：死子判断。虽然利用下面的算法完成了对单个棋子的死活判断，但没有实现对多个棋子的判断（目前还未去解决，待解决）。
+在解决了这个问题之后，我又迎来了第3个大问题：死子判断。
+
+其原理大致如下：先获取待判断死活的棋子的周围棋点；然后逐一判断是否是空点、对手棋子、己方棋子；如果是己方棋子，则递归判断这颗棋子的死活。
 
 ``` cpp
-... ...
-/*获取棋子被围数*/
-int Board::getSurroundStone(int id)
+/* 判断死子，true 为死子 */
+bool Board::isDead2(int id, QSet<QString> visited)
 {
-  QPoint sCenter = polarCoordToXY(QPoint(0,0), id); //获取该子的像素坐标
-  int d = _R*10/18;
-  int n = 0;
-  for(int i = 0;i < 12;++i)
-  {
-    if(_s[i]._dead)
-      continue;
+  // 获取周围起点
+  QVector<BoardPoint> aroundPoints = getSurroundPoints(id);
 
-    QPoint iCenter = polarCoordToXY(QPoint(0,0), i);
-    int dx = sCenter.x() - iCenter.x();
-    int dy = sCenter.y() - iCenter.y();
-
-    //被对手棋子全包围时
-    if((dx*dx + dy*dy)>0 && (dx*dx + dy*dy) <= d*d && _s[i]._black != _s[id]._black)
-      n++;
+  if (aroundPoints.isEmpty()) {
+    return false;
   }
-  return n;
+
+  for (auto item : aroundPoints) {
+    QString str = item.GetString();
+    if (visited.contains(str)) // 该点已被遍历过了
+        continue;
+    visited.insert(str);
+
+    Stone *pStone = getStone(item);
+
+    if (nullptr == pStone) { // 没棋子
+      _s[id]._dead = false;
+      return false;
+    }
+
+    if (pStone->_black == _s[id]._black) { // 同颜色棋子
+      if (!isDead2(pStone->_id, visited)) { // 没死
+        _s[id]._dead = false;
+        return false;
+      }
+    }
+  }
+
+  _s[id]._dead = true;
+  return _s[id]._dead;
 }
-... ...
 ```
-
-也就是说，当单个棋子被对手棋子全包围时，它会判断为死子，然后“消失”；但是，2个或2个以上的情况不会。
-
-![talk-wchess-2](./talk-wchess-2.png)
 
 ## 电脑走棋
 
