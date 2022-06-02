@@ -104,3 +104,8 @@ num.ToString();
 
 
 > 未完待续
+
+## 参考资料
+
+1. [.NET assembly file format](https://docs.microsoft.com/en-us/dotnet/standard/assembly/file-format)
+2. [System.Reflection.Emit.OpCodes](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes)
