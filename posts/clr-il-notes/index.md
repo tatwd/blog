@@ -7,7 +7,7 @@ tags:
 ---
 
 
-CLR 实际运行的代码是 IL 代码 。以下是一个简单的 HelloWorld 程序：
+CLR 实际处理的代码是 IL 代码 。以下是一个简单的 HelloWorld 程序：
 
 ```il
 .assembly extern mscorlib{}
