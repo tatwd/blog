@@ -8,6 +8,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>@Model.TagName</title>
+  <link rel="stylesheet" href="/styles/dark.css" />
   <link rel="stylesheet" href="/styles/app.css" />
   <style>
     ul {
@@ -16,6 +17,27 @@
       padding: 0;
     }
   </style>
+  <script>
+    function setTheme(newTheme) {
+      document.documentElement.setAttribute('theme', newTheme)
+    }
+
+    function setPreferredTheme(newTheme) {
+      setTheme(newTheme);
+      try {
+        localStorage.setItem('theme', newTheme);
+      } catch (err) { }
+    }
+
+    !(function () {
+      var preferredTheme;
+      try {
+        preferredTheme = localStorage.getItem('theme');
+      } catch (err) { }
+
+      setPreferredTheme(preferredTheme || 'light')
+    })();
+  </script>
 </head>
 
 <body>
@@ -23,7 +45,7 @@
     <div style="margin-top: 1.25rem">
       <a class="font-mono underline" href="/">cd ..</a>
     </div>
-    <h1 class="font-sans">#@Model.TagName</h1>
+    <h1 class="font-sans text-black">#@Model.TagName</h1>
     <small class="text-light">共 @Model.Posts.Count 篇</small>
   </header>
   <main class="container" style="padding-top: 2rem;">

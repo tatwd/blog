@@ -1,7 +1,7 @@
 :root {
   --code-bgcolor: #f6f8fa;
-  --code-fonts: "SFMono-Regular", Consolas, Monaco, Menlo, "Andale Mono",
-    "Ubuntu Mono", monospace;
+  --code-fonts: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }
 
 article {

@@ -1,15 +1,15 @@
 :root {
-  --bg-color: #f6f8fa;
+  --code-bgcolor: #f6f8fa;
   --code-color: #666;
   --code-fonts: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
   --code-size: 13px;
 }
 
-html[theme="dark"] {
-  --bg-color: #011627;
+/* html[theme="dark"] {
+  --code-bgcolor: #011627;
   --code-color: #ccc;
-}
+} */
 
 @media (min-width: 768px) {
   :root {
@@ -52,7 +52,7 @@ pre[class*="language-"] {
 
 :not(pre) > code[class*="language-"],
 pre[class*="language-"] {
-  background: var(--bg-color);
+  background: var(--code-bgcolor);
 }
 
 /* Inline code */

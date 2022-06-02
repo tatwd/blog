@@ -14,9 +14,31 @@
   }
 
   <title>@Model.PostTitle</title>
+  <link rel="stylesheet" href="/styles/dark.css" />
   <link rel="stylesheet" href="/styles/app.css" />
   <link rel="stylesheet" href="/styles/post.css" />
   <link rel="stylesheet" href="/styles/prism.css" />
+  <script>
+    function setTheme(newTheme) {
+      document.documentElement.setAttribute('theme', newTheme)
+    }
+
+    function setPreferredTheme(newTheme) {
+      setTheme(newTheme);
+      try {
+        localStorage.setItem('theme', newTheme);
+      } catch (err) { }
+    }
+
+    !(function () {
+      var preferredTheme;
+      try {
+        preferredTheme = localStorage.getItem('theme');
+      } catch (err) { }
+
+      setPreferredTheme(preferredTheme || 'light')
+    })();
+  </script>
 </head>
 
 <body>
@@ -24,7 +46,7 @@
     <div style="margin-top: 1.25rem">
       <a class="font-mono underline" href="/">cd ..</a>
     </div>
-    <h1 class="font-sans">@Model.PostTitle</h1>
+    <h1 class="font-sans text-black">@Model.PostTitle</h1>
     <small class="text-light">
       <span>@Model.FrontMatter.CreateTime.ToString("MMMM d, yyyy")</span>
       •

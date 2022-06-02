@@ -1,0 +1,10 @@
+html[theme="dark"] {
+  --bgcolor: #282c35;
+  --color-black: #fff;
+  --icon-link-color: #fff;
+
+  /* post */
+  --color-light-black: hsla(0, 0%, 100%, 0.88);
+  --code-bgcolor: #011627;
+  --code-color: #ccc;
+}

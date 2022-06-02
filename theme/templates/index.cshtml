@@ -10,10 +10,11 @@
 
   @if (!string.IsNullOrEmpty(Model.BlogConfig.Description))
   {
-        <meta name="description" content="@Model.BlogConfig.Description" />
+    <meta name="description" content="@Model.BlogConfig.Description" />
   }
 
   <title>@Model.BlogConfig.Title</title>
+  <link rel="stylesheet" href="/styles/dark.css" />
   <link rel="stylesheet" href="/styles/app.css" />
   <style>
     ul {
@@ -21,15 +22,48 @@
       margin: 0;
       padding: 0;
     }
+
+    .theme-icon {
+      font-size: 1.75em;
+      position: absolute;
+      left: -15px;
+      top: -15px;
+      cursor: pointer;
+    }
   </style>
+
+  <script>
+    function setTheme(newTheme) {
+      document.documentElement.setAttribute('theme', newTheme)
+    }
+
+    function setPreferredTheme(newTheme) {
+      setTheme(newTheme);
+      try {
+        localStorage.setItem('theme', newTheme);
+      } catch (err) { }
+    }
+
+    !(function () {
+      var preferredTheme;
+      try {
+        preferredTheme = localStorage.getItem('theme');
+      } catch (err) { }
+
+      setPreferredTheme(preferredTheme || 'light')
+    })();
+  </script>
+
 </head>
 
 <body>
-  <header class="container" style="margin-top: 5.6rem;" >
-    <p>
+  <header class="container" style="margin-top: 5.6rem;">
+    <p style="position: relative;">
       <img src="/avatar.jpg" alt="avatar" height="100" style="display: block;" />
+      <span class="theme-icon" id="dark-theme-icon" style="display: none;">🌛</span>
+      <span class="theme-icon" id="light-theme-icon" style="display: none;">🌞</span>
     </p>
-    <h1 class="text-uppercase" style="margin: 1.75rem 0 1.75rem 0">
+    <h1 class="text-black text-uppercase" style="margin: 1.75rem 0 1.75rem 0">
       @Model.BlogConfig.Title
     </h1>
     <div class="text-light">
@@ -48,17 +82,17 @@
     <ul>
       @foreach (var item in Model.Posts)
       {
-            <li style="margin-top: 0.5rem; margin-bottom: 1.5rem">
-              <div style="margin-bottom: 5px">
-                <a class="text-uppercase text-black hover-red" style="font-size: 1.25rem; margin-bottom: 5px"
+        <li style="margin-top: 0.5rem; margin-bottom: 1.5rem">
+          <div style="margin-bottom: 5px">
+            <a class="text-uppercase text-black hover-red" style="font-size: 1.25rem; margin-bottom: 5px"
             href="@item.PostRoute">@item.PostTitle</a>
-              </div>
-              <div class="text-light">
-                <span>@item.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
-                •
-                <span>@Util.FormatReadingTime(item.TimeToRead)</span>
-              </div>
-            </li>
+          </div>
+          <div class="text-light">
+            <span>@item.FrontMatter.CreateTime.ToString("MMM d, yyyy")</span>
+            •
+            <span>@Util.FormatReadingTime(item.TimeToRead)</span>
+          </div>
+        </li>
       }
     </ul>
   </main>
@@ -67,5 +101,33 @@
     2017-PRESENT © @Model.BlogConfig.Author
   </footer>
 </body>
+
+<script>
+  !(function () {
+    var preferredTheme;
+    try {
+      preferredTheme = localStorage.getItem('theme');
+    } catch (err) { }
+
+    var darkIconEl = document.querySelector('#dark-theme-icon');
+    var lightIconEl = document.querySelector('#light-theme-icon');
+
+    function toggleDisplay(theme) {
+      darkIconEl.style.display = theme === 'dark' ? 'unset' : 'none'
+      lightIconEl.style.display = theme === 'light' ? 'unset' : 'none'
+    }
+
+    toggleDisplay(preferredTheme)
+
+    function toggleTheme(e) {
+      var newTheme = e.target.id === 'light-theme-icon' ? 'dark' : 'light'
+      toggleDisplay(newTheme)
+      setPreferredTheme(newTheme)
+    }
+
+    darkIconEl.addEventListener('click', toggleTheme)
+    lightIconEl.addEventListener('click', toggleTheme)
+  })()
+</script>
 
 </html>
