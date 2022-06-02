@@ -33,6 +33,8 @@ IL 是基于指令的，它通过一系列的指令来完成上层语言需要�
 
 ## 内存分配
 
+主要涉及指令：[`newobj`](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes.newobj)、[`newarr`](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes.newarr)、[`ldstr`](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes.ldstr)
+
 大多数引用类型变量使用 `newobj` 指令进行初始化。只有零基（zero-based）一维数组使用 `newarr` 指令。字符串是比较特殊的引用类型，它使用的指令是 `ldstr`。
 
 值类型有时也使用 `newobj` 进行初始化，但大多数情况下使用的是 `initobj` 指令。后者不会调用构造函数（`ctor`）。值类型发生装箱（`box`）时也会发生托管堆空间的申请。
@@ -50,7 +52,7 @@ IL 是基于指令的，它通过一系列的指令来完成上层语言需要�
 
 ## 装箱和拆箱
 
-涉及指令：`box`、`unbox`、`unbox.any`。
+主要涉及指令：[`box`](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes.box)、[`unbox`](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes.unbox)、[`unbox.any`](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes.unbox_any)。
 
 `box` 会发送内存分配（可能发生 GC），属于昂贵的操作，应尽量避免。例如，对于下面发生的字符串插值在 .NET 6 以下版本会发生装箱。
 
@@ -72,7 +74,7 @@ IL_0018: call         string [System.Runtime]System.String::Format(string, objec
 
 ## 方法调用
 
-涉及指令：`call`、`callvirt`。
+主要涉及指令：[`call`](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes.call)、[`callvirt`](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.emit.opcodes.callvirt)。
 
 `call` 执行静态调用，一般是发生在静态方法或非虚方法上。
 
