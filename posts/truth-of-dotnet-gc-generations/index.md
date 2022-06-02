@@ -37,7 +37,9 @@ enum gc_generation_num
 };
 ```
 
-当我们调用 `GC.MaxGeneration` 时，其结果一情况下，返回的就是这个枚举的 `max_generation` 值，亦即最大代数是 2（zero-base）。
+所谓分期待，其实就是分配索引，用来访问 `generation_table` / `dynamic_data_table`，从这个意义上讲，最大代数就是 `total_generation_count` 的值 5。
+
+注意，当我们调用 `GC.MaxGeneration` 时，其结果一情况下，返回的就是这个枚举的 `max_generation` 值，亦即最大代数是 2（zero-based），它表示的是 SOH 的最大代 `gen2`。
 
 
 ## SOH、LOH 的分代
@@ -54,7 +56,7 @@ enum gc_generation_num
 
 ## POH 的分代
 
-POH 是 .NET 5 新增加的，我们可以说它也是一种迁就化的设计，虽然分代是 gen4，但实际上它存在 LOH 上。故而，运行时团队将 POH 和 LOH 统称叫 UOH（User Old Heap）。
+POH 是 .NET 5 新增加的，分代是 gen4，它拥有属于自己地址段，与 LOH 是类似的，故而，运行时团队将 POH 和 LOH 统称叫 UOH（User Old Heap）。
 
 ## 总结
 
