@@ -3,7 +3,7 @@ title: YARP 网关配置 X-Forwarded-* 问题
 tags:
   - dotnet
   - 技术笔记
-create_time: 2021-03-08
+create_time: 2022-06-06
 ---
 
 YARP (以下使用 1.0 作为讨论对象) 支持对请求头中 X-Forwarded 下的 4 个字段进行设置：
