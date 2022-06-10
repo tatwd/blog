@@ -39,6 +39,33 @@ http://yarp_host:7000/service1/swagger/index.html -> http://api1_host:5000/swagg
 http://yarp_host:7000/service2/swagger/index.html -> http://api2_host:6000/swagger/index.html
 ```
 
+以代理 api2 为例，
+
+`Match` 设置规则：
+
+```json
+"Match": {
+  "Path": "/service2/{**remainder}",
+}
+```
+`Transforms`设置规则：
+```json
+"Transforms": [
+  {
+    "PathRemovePrefix": "/service2"
+  },
+  {
+    "X-Forwarded": "Set",
+    "Prefix": "Off",
+    "Host": "Off",
+    "Proto": "Off"
+  },
+  {
+    "RequestHeader": "X-Forwarded-Prefix",
+    "Set": "/service2"
+  }
+]
+```
 
 
 > 更新中
