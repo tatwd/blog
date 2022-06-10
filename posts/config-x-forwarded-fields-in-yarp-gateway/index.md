@@ -83,8 +83,8 @@ x-forwarded-prefix: /service2
 x-forwarded-proto: http
 ```
 
+其中，对 `"Host": "Off"` 是因为如果有多层代理是，SwaggerUI 默认取最后一层代理地址，从而造成 servers 列表无法显示正确的地址。
 
-> 更新中
 
 
 ## 参考资料
