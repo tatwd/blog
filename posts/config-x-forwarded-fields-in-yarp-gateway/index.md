@@ -4,7 +4,6 @@ tags:
   - dotnet
   - 技术笔记
 create_time: 2021-03-08
-draft: true
 ---
 
 YARP (以下使用 1.0 作为讨论对象) 支持对请求头中 X-Forwarded 下的 4 个字段进行设置：
