@@ -23,6 +23,9 @@ X-Forwarded-Prefix
 `X-Forwarded-Prefix` 默认从 `HttpContext.Request.PathBase` 读取进行设置。
 
 
+
+## 正确访问下游服务的 SwaggerUI 页面
+
 已如下事例来讨论：
 
 ```
@@ -48,16 +51,12 @@ YARP :7000 -------/service1/**----> api1 :5000
 ```
 
 
-## 正确访问下游服务的 SwaggerUI 页面
-
-若要成功访问到下游服务的 SwaggerUI 页面并顺利对接口进行调试，则必须保证上面的 4 个请求头都设置正确。
-
-
-我们希望从 YARP 访问 api1 和 api2 的 SwaggerUI：
+若要成功访问到下游服务的 SwaggerUI 页面并顺利对接口进行调试，即我们希望从 YARP 实现如下转换：
 ```
 http://yarp_host:7000/service1/swagger/index.html -> http://api1_host:5000/swagger/index.html
 http://yarp_host:7000/service2/swagger/index.html -> http://api2_host:6000/swagger/index.html
 ```
+
 
 以代理 api2 为例，`Transforms` 要新增如下规则：
 
