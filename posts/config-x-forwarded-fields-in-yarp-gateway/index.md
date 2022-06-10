@@ -7,7 +7,7 @@ create_time: 2021-03-08
 draft: true
 ---
 
-YARP 支持对请求头中 X-Forwarded 下的 4 个字段进行设置：
+YARP (以下使用 1.0 作为讨论对象) 支持对请求头中 X-Forwarded 下的 4 个字段进行设置：
 
 ```
 X-Forwarded-For
@@ -16,22 +16,42 @@ X-Forwarded-Host
 X-Forwarded-Prefix
 ```
 
+## 默认取值
 
 `X-Forwarded-For` 默认从 `HttpContext.Connection.RemoteIpAddress` 读取进行设置。
 
 `X-Forwarded-Prefix` 默认从 `HttpContext.Request.PathBase` 读取进行设置。
 
 
-
-## 正确设置 YARP 访问下游服务的 SwaggerUI 页面
-
-若要成功访问到下游服务的 SwaggerUI 页面并顺利对接口进行调试，则必须保证上面的 4 个请求头都设置正确。例如下列场景，
+已如下事例来讨论：
 
 ```
 YARP :7000 -------/service1/**----> api1 :5000
            |
            +------/service2/**----> api2 :6000
+
 ```
+
+若要实现这个代理，需要添加下列路由匹配规则：
+
+```json
+"Match": {
+  "Path": "/service1/{**remainder}",
+}
+```
+
+同时，`Transforms` 要增加一条规则：
+```json
+{
+  "PathRemovePrefix": "/service2"
+},
+```
+
+
+## 正确访问下游服务的 SwaggerUI 页面
+
+若要成功访问到下游服务的 SwaggerUI 页面并顺利对接口进行调试，则必须保证上面的 4 个请求头都设置正确。
+
 
 我们希望从 YARP 访问 api1 和 api2 的 SwaggerUI：
 ```
@@ -39,32 +59,29 @@ http://yarp_host:7000/service1/swagger/index.html -> http://api1_host:5000/swagg
 http://yarp_host:7000/service2/swagger/index.html -> http://api2_host:6000/swagger/index.html
 ```
 
-以代理 api2 为例，
-
-`Match` 设置规则：
+以代理 api2 为例，`Transforms` 要新增如下规则：
 
 ```json
-"Match": {
-  "Path": "/service2/{**remainder}",
+{
+  "X-Forwarded": "Set",
+  "Prefix": "Off",
+  "Host": "Off",
+  "Proto": "Off"
+},
+{
+  "RequestHeader": "X-Forwarded-Prefix",
+  "Set": "/service2"
 }
 ```
-`Transforms`设置规则：
-```json
-"Transforms": [
-  {
-    "PathRemovePrefix": "/service2"
-  },
-  {
-    "X-Forwarded": "Set",
-    "Prefix": "Off",
-    "Host": "Off",
-    "Proto": "Off"
-  },
-  {
-    "RequestHeader": "X-Forwarded-Prefix",
-    "Set": "/service2"
-  }
-]
+
+此时，到达 api2 的请求头里这 4 个字段可能为：
+
+```
+x-forwarded-for: ::ffff:127.0.0.1
+x-forwarded-host: yarp_host
+x-forwarded-port: 80
+x-forwarded-prefix: /service2
+x-forwarded-proto: http
 ```
 
 
