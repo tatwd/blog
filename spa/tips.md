@@ -5,6 +5,24 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
+## SQL 中按指定分割符连接字符串表达式
+> 2022-06-13
+
+MySql 5.6+ 可以使用 [`GROUP_CONCAT`](https://dev.mysql.com/doc/refman/5.6/en/aggregate-functions.html#function_group-concat)
+
+Sql Server 2017+ 可以使用 [`STRING_AGG`](https://docs.microsoft.com/en-us/sql/t-sql/functions/string-agg-transact-sql)，低版本可以类似如下实现：
+
+```sql
+select a.custid,
+  stuff( (select ',' + b.product
+    from customer_product b
+    where b.custid=a.custid
+    for xml path('')), 1, 1, NULL ) as products
+from customer_product a
+group by custid
+```
+
+
 ## 关于季度的日期操作
 > 2022-03-22
 
