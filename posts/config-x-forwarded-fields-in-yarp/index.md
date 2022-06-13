@@ -84,7 +84,7 @@ x-forwarded-proto: http
 
 其中，对 `"Host": "Off"` 是因为如果有多层代理是，SwaggerUI 默认取最后一层代理地址，从而造成 servers 列表无法显示正确的地址。
 
-
+完整配置查看[此处](https://github.com/tatwd/tryit/blob/master/yarp/MyProxy/appsettings.json)。
 
 ## 参考资料
 
