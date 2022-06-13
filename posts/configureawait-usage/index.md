@@ -1,5 +1,5 @@
 ---
-title: ConfigureAwait 方法的作用
+title: ConfigureAwait 方法的使用
 tags:
   - dotnet
   - 技术笔记
@@ -57,7 +57,7 @@ async Task WaitAsync()
 }
 ```
 
-要解决这个问题，再不改变调用方行为的情况，可以通过如下修改解决：
+要解决这个问题，在不改变调用方行为的情况下，可以通过如下修改解决：
 
 ```csharp
 await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false)
