@@ -34,7 +34,7 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
         ["yml"] = LanguageGrammars.Yaml,
         ["powershell"] = LanguageGrammars.PowerShell,
         ["ps1"] = LanguageGrammars.PowerShell,
-        ["lua"] = LanguageGrammars.CLike
+        ["lua"] = LanguageGrammars.Lua
     };
 
     private readonly CodeBlockRenderer _codeBlockRenderer;

@@ -11,7 +11,7 @@
     <PackageReference Include="Markdig" Version="0.27.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
     <PackageReference Include="Microsoft.SyndicationFeed.ReaderWriter" Version="1.0.2" />
-    <PackageReference Include="PrismSharp.Highlighting.HTML" Version="0.1.1-build.2" />
+    <PackageReference Include="PrismSharp.Highlighting.HTML" Version="0.1.*" />
     <!-- <PackageReference Include="Markdown.ColorCode" Version="1.0.0" /> -->
     <!-- <PackageReference Include="RazorEngine" Version="3.10.0" /> -->
     <PackageReference Include="RazorEngineCore" Version="2022.1.2" />
