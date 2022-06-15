@@ -147,7 +147,7 @@ try {
 
 ## AspNetCore 快速配置 Serilog
 
-```
+```shell
 dotnet add package Serilog.AspNetCore
 ```
 
@@ -316,7 +316,7 @@ net.ipv4.tcp_fin_timeout = 30
 
 1. 删除指定模式匹配的 keys
 
-```sh
+```shell
 redis-cli -h 127.0.0.1 -p 6379 --scan --pattern "foo_*" | xargs -L 2000 redis-cli -h 127.0.0.1 -p 6379 del
 ```
 
@@ -365,7 +365,7 @@ db.createUser(
 
 ## RabbitMQ
 
-```sh
+```shell
 rabbitmq-plugins enable rabbitmq_management
 ```
 visit it on `http://localhost:15672/` default username and password is `guest`
@@ -376,11 +376,11 @@ visit it on `http://localhost:15672/` default username and password is `guest`
 ## MySQL
 
 初次启动
-```sh
+```cmd
 bin\mysqld --initialize
 ```
 修改密码
-```sh
+```shell
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
 ```
 
@@ -415,7 +415,7 @@ bin\mysqld --install MySQL --defaults-file=D:\devtools\mysql-5.7.31-winx64\my.cn
 
 ## Nginx 配置
 
-```sh
+```shell
 ./configure --prefix=$(pwd)/build \
   --with-pcre=/usr/lib \
   --with-zlib=/usr/lib \
@@ -437,16 +437,18 @@ c:\mysymbols;srv*c:\cachesymbols*https://msdl.microsoft.com/download/symbols
 > [Windows 调试器的符号路径](https://docs.microsoft.com/zh-cn/windows-hardware/drivers/debugger/symbol-path)
 
 然后，在 windbg 中执行以下命令加载符号（注意保持网络通畅）
-```txt
+```shell
 .reload [-f]
 ```
 
 当进行调试时，最好拿到程序的 `*.pdb` 文件并放到某个文件夹（如：`c:\mysymobls`），要加入到 SFP。这样调试时，可以拿到源码的相关信息，有助于快速定位到问题所在。
 
 针对 .NET 程序，最好配合 `SOS.dll` 工具进行
-```txt
+```shell
 .loadby sos clr #建议先加载symbols再执行这条命令
-or
+```
+Or
+```shell
 .load <full path to sos.dll>
 ```
 `SOS.dll` 可以在类似于 `C:\Windows\Microsoft.NET\Framework64\v4.0.30319` 的，目录下找到。
