@@ -12,30 +12,30 @@ namespace MyBlog;
 
 public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 {
-    private static readonly IReadOnlyDictionary<string, Grammar> SupportedGrammarMap = new Dictionary<string, Grammar>
-    {
-        ["c"] = LanguageGrammars.C,
-        ["cpp"] = LanguageGrammars.C,
-        ["c++"] = LanguageGrammars.C,
-        ["csharp"] = LanguageGrammars.CSharp,
-        ["c#"] = LanguageGrammars.CSharp,
-        ["cs"] = LanguageGrammars.CSharp,
-        ["dotnet"] = LanguageGrammars.CSharp,
-        ["js"] = LanguageGrammars.JavaScript,
-        ["javascript"] = LanguageGrammars.JavaScript,
-        ["html"] = LanguageGrammars.Html,
-        ["xml"] = LanguageGrammars.Xml,
-        ["aspx"] = LanguageGrammars.AspNet,
-        ["asp"] = LanguageGrammars.AspNet,
-        ["aspnet"] = LanguageGrammars.AspNet,
-        ["sql"] = LanguageGrammars.Sql,
-        ["json"] = LanguageGrammars.Json,
-        ["yaml"] = LanguageGrammars.Yaml,
-        ["yml"] = LanguageGrammars.Yaml,
-        ["powershell"] = LanguageGrammars.PowerShell,
-        ["ps1"] = LanguageGrammars.PowerShell,
-        ["lua"] = LanguageGrammars.Lua
-    };
+    // private static readonly IReadOnlyDictionary<string, Grammar> SupportedGrammarMap = new Dictionary<string, Grammar>
+    // {
+    //     ["c"] = LanguageGrammars.C,
+    //     ["cpp"] = LanguageGrammars.C,
+    //     ["c++"] = LanguageGrammars.C,
+    //     ["csharp"] = LanguageGrammars.CSharp,
+    //     ["c#"] = LanguageGrammars.CSharp,
+    //     ["cs"] = LanguageGrammars.CSharp,
+    //     ["dotnet"] = LanguageGrammars.CSharp,
+    //     ["js"] = LanguageGrammars.JavaScript,
+    //     ["javascript"] = LanguageGrammars.JavaScript,
+    //     ["html"] = LanguageGrammars.Html,
+    //     ["xml"] = LanguageGrammars.Xml,
+    //     ["aspx"] = LanguageGrammars.AspNet,
+    //     ["asp"] = LanguageGrammars.AspNet,
+    //     ["aspnet"] = LanguageGrammars.AspNet,
+    //     ["sql"] = LanguageGrammars.Sql,
+    //     ["json"] = LanguageGrammars.Json,
+    //     ["yaml"] = LanguageGrammars.Yaml,
+    //     ["yml"] = LanguageGrammars.Yaml,
+    //     ["powershell"] = LanguageGrammars.PowerShell,
+    //     ["ps1"] = LanguageGrammars.PowerShell,
+    //     ["lua"] = LanguageGrammars.Lua
+    // };
 
     private readonly CodeBlockRenderer _codeBlockRenderer;
 
@@ -82,10 +82,9 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 
     private string HighlightCode(LeafBlock node, string language)
     {
-        if (SupportedGrammarMap.TryGetValue(language, out var grammar))
-            return HighlightCode(node, grammar, language);
-
-        return ExtractSourceCode(node);
+        var grammar = LanguageGrammars.GetGrammar(language);
+        return HighlightCode(node, grammar, language);
+        // return ExtractSourceCode(node);
     }
 
     private string HighlightCode(LeafBlock node, Grammar grammar, string language)
@@ -103,37 +102,37 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
         return html;
     }
 
-    private string ExtractSourceCode(LeafBlock node)
-    {
-        var code = new StringBuilder();
-        var lines = node.Lines.Lines;
-        int totalLines = lines.Length;
-        for (int i = 0; i < totalLines; i++)
-        {
-            var line = lines[i];
-            var slice = line.Slice;
-            if (slice.Text == null)
-            {
-                continue;
-            }
+    // private string ExtractSourceCode(LeafBlock node)
+    // {
+    //     var code = new StringBuilder();
+    //     var lines = node.Lines.Lines;
+    //     int totalLines = lines.Length;
+    //     for (int i = 0; i < totalLines; i++)
+    //     {
+    //         var line = lines[i];
+    //         var slice = line.Slice;
+    //         if (slice.Text == null)
+    //         {
+    //             continue;
+    //         }
 
-            var lineText = slice.Text.Substring(slice.Start, slice.Length);
-            if (i > 0)
-            {
-                code.AppendLine();
-            }
+    //         var lineText = slice.Text.Substring(slice.Start, slice.Length);
+    //         if (i > 0)
+    //         {
+    //             code.AppendLine();
+    //         }
 
-            foreach (var c in lineText)
-            {
-                if (_charRemap.TryGetValue(c, out var s))
-                    code.Append(s);
-                else
-                    code.Append(c);
-            }
-        }
+    //         foreach (var c in lineText)
+    //         {
+    //             if (_charRemap.TryGetValue(c, out var s))
+    //                 code.Append(s);
+    //             else
+    //                 code.Append(c);
+    //         }
+    //     }
 
-        return code.ToString();
-    }
+    //     return code.ToString();
+    // }
 
     private readonly IDictionary<char, string> _charRemap = new Dictionary<char, string>
     {
