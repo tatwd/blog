@@ -9,7 +9,7 @@ tags:
 
 CLR 实际处理的代码是 IL 代码 。以下是一个简单的 HelloWorld 程序：
 
-```il
+```cil
 .assembly extern mscorlib{}
 .assembly HelloWorld {}
 .class HelloWorld extends [mscorlib]System.Object
@@ -62,7 +62,7 @@ string str = $"hello {foo}";
 ```
 对应的 IL 代码可能如下（.NET 6 以下）：
 
-```il
+```cil
 IL_000d: ldstr        "hello {0}"
 IL_0012: ldloc.1      // foo
 IL_0013: box          [System.Runtime]System.Int32
