@@ -1,15 +1,9 @@
 ﻿using System.Xml;
-using Markdig;
-using Markdig.Extensions.Yaml;
-using Markdig.Parsers;
-using Markdig.Renderers;
-using Markdig.Syntax;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SyndicationFeed;
 using Microsoft.SyndicationFeed.Atom;
 using MyBlog;
 using RazorEngineCore;
-using YamlDotNet.Serialization;
 
 // My blog global config, maybe should set in a config file.
 var blogConfig = new BlogConfig
