@@ -1,45 +1,10 @@
 name: Deploy blog
-on:
-  push:
-    branches:
-      - main
+
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 6.0.x
-
-    - name: Cache nuget package
-      uses: actions/cache@v1
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-
-    - name: Restore nuget packages
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-restore
-    - name: Generate blog files
-      run: dotnet run --project src/blog.csproj \
-            --cwd ./ \
-            --no-build \
-            --verbosity normal
-
-  deploy:
-    needs: [build]
-    runs-on: ubuntu-latest
-    # Commit message starts with `release:` will delpoy
-    if: "startsWith(github.event.head_commit.message, 'release:')"
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
@@ -70,6 +35,11 @@ jobs:
     - name: Deploy to Staging
       id: deploy-vercel-staging
       uses: amondnet/vercel-action@v20
+      #preview on staging
+      if: |
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'preview:')
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
@@ -77,17 +47,14 @@ jobs:
         working-directory: ./dist
         scope: ${{ secrets.VERCEL_ORG_ID }}
 
-    - name: Preview url
-      run: |
-          echo ${{ steps.deploy-vercel-staging.outputs.preview-url }}
-
-    #TODO: add e2e test before deploying to production
-
     - name: Deploy to Production
       uses: amondnet/vercel-action@v20
       id: deploy-vercel-production
-      # Only push envet happened in main branch can deploy to Vercel
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      #deploy to production
+      if: |
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'release:')
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
