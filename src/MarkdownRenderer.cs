@@ -44,8 +44,8 @@ public class MarkdownRenderer
         // renderer.BaseUrl = new Uri("/fooo");
         renderer.LinkRewriter = link =>
         {
-            if (link.StartsWith("./"))
-                return usePathname + link.Substring(1);
+            // if (link.StartsWith("./"))
+            //     return usePathname + link.Substring(1);
             return link;
         };
 
