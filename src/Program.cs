@@ -91,7 +91,8 @@ var themePostTemplate = compiledTemplateMap["post"];
 var postFiles = Directory.GetFiles(postsDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
-    var newPath = path.Replace(postsDir, $"{distDir}/posts");
+    var outputDir = $"{distDir}/posts";
+    var newPath = path.Replace(postsDir, outputDir);
     Util.CreateDirIfNotExists(newPath);
 
     // Copy other files to dist, just like images etc.
@@ -103,26 +104,20 @@ foreach (var path in postFiles.AsParallel())
     }
 
     var htmlFile = newPath.Replace(".md", ".html");
-    var htmlFileName = Path.GetFileName(htmlFile);
-    var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, "")) !;
+    // var htmlFileName = Path.GetFileName(htmlFile);
+    var postRoute = htmlFile.Replace(distDir, "");
+    var pathname = Path.GetDirectoryName(postRoute)!;
 
     var mdText = File.ReadAllText(path);
-    var (html, postFrontMatter) = markdownRenderer.Render(mdText, postRoute);
+    var (html, postFrontMatter) = markdownRenderer.Render(mdText, pathname);
 
     // Do not  publish draft item if env is not development.
     if (!isDev && postFrontMatter.Draft)
         continue;
 
-    // var plainText = Markdown.ToPlainText(mdText, pipeline);
     var plainText = Util.Html2Text(html);
     var timeToRead = Util.CalcTimeToRead(plainText);
-    // var abstractText = plainText.Substring(0, Math.Min(plainText.Length, 140)).Replace("\n", " ");
     var abstractText = Util.GenerateAbstractText(plainText);
-
-    var fileNameWithoutExt = Path.GetFileNameWithoutExtension(newPath);
-    var parentDir = Directory.GetParent(newPath) !;
-    var isPostPageDir = parentDir.FullName.EndsWith("/posts");
-    var newPostRoute = isPostPageDir ? postRoute + "/" + htmlFileName : postRoute;
 
     var postViewModel = new PostViewModel
     {
@@ -130,7 +125,7 @@ foreach (var path in postFiles.AsParallel())
         PostContent = html,
         TimeToRead = timeToRead,
         AbstractText = abstractText,
-        PostRoute = newPostRoute,
+        PostRoute = postRoute,
         FrontMatter = postFrontMatter
     };
     posts.Add(postViewModel);
@@ -140,7 +135,7 @@ foreach (var path in postFiles.AsParallel())
 
     using StreamWriter swPost = File.CreateText(htmlFile);
     await swPost.WriteAsync(result);
-    Console.WriteLine("Generated: {0}/{1}", postRoute, htmlFileName);
+    Console.WriteLine("Generated: {0}", postRoute);
 }
 
 // Generate index.html
@@ -221,11 +216,12 @@ foreach (var path in spaFiles.AsParallel())
         continue;
     }
 
-    var mdFileName = Path.GetFileName(newPath);
+    // var mdFileName = Path.GetFileName(newPath);
     var htmlFile = newPath.Replace(".md", "/index.html");
-    var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, ""))!;
+    var postRoute = htmlFile.Replace(distDir, "");
+    var pathname = Path.GetDirectoryName(postRoute)!;
     var mdText = File.ReadAllText(path);
-    var (html, frontMatter) = markdownRenderer.Render(mdText, postRoute);
+    var (html, frontMatter) = markdownRenderer.Render(mdText, pathname);
 
     var spaViewModel = new
     {
@@ -241,7 +237,7 @@ foreach (var path in spaFiles.AsParallel())
     Util.CreateDirIfNotExists(htmlFile);
     using StreamWriter swPost = File.CreateText(htmlFile);
     await swPost.WriteAsync(result);
-    Console.WriteLine("Generated: {0}/index.html", postRoute);
+    Console.WriteLine("Generated: {0}", postRoute);
 }
 
 
@@ -282,7 +278,6 @@ async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
                 Published = post.FrontMatter.CreateTime,
                 LastUpdated = post.FrontMatter.CreateTime,
                 ContentType = "html",
-                Description = post.PostContent,
                 Summary = post.AbstractText
             };
 
