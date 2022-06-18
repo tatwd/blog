@@ -277,15 +277,15 @@ async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
                 Title = post.PostTitle,
                 Published = post.FrontMatter.CreateTime,
                 LastUpdated = post.FrontMatter.CreateTime,
-                ContentType = "html",
+                // ContentType = "html",
                 Summary = post.AbstractText
             };
 
             item.AddContributor(new SyndicationPerson(blogConfig.Author, blogConfig.Email, AtomContributorTypes.Author));
             item.AddLink(new SyndicationLink(new Uri(postLink)));
 
-            foreach (var tag in post.FrontMatter.Tags)
-                item.AddCategory(new SyndicationCategory(tag));
+            // foreach (var tag in post.FrontMatter.Tags)
+            //     item.AddCategory(new SyndicationCategory(tag));
 
             await writer.Write(item);
         }
