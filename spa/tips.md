@@ -1,5 +1,5 @@
 ---
-title: My Tips
+title: Tips & Snippets
 create_time: 2022-03-22
 ---
 
