@@ -18,7 +18,15 @@ var blogConfig = new BlogConfig
     Author = "_king",
     Description = "万古长空，一朝风月。",
     Email = "tatwdo@gmail.com",
-    Link = "https://blog.tatwd.me"
+    BlogLink = "https://blog.tatwd.me",
+    Links = new []
+    {
+        new MyLink{Title = "tips", Url = "/tips" },
+        new MyLink{Title = "tools", Url = "/tools" },
+        new MyLink{Title = "slides", Url = "https://slides.tatwd.me" },
+        new MyLink{Title = "github", Url = "https://github.com/tatwd" },
+        new MyLink{Title = "rss", Url = "/atom.xml" },
+    }
 };
 
 // --posts
@@ -340,13 +348,13 @@ async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
         var writer = new AtomFeedWriter(xmlWriter);
         await writer.WriteTitle(blogConfig.Title);
         // await writer.WriteDescription(blogConfig.Description);
-        await writer.Write(new SyndicationLink(new Uri(blogConfig.Link)));
+        await writer.Write(new SyndicationLink(new Uri(blogConfig.BlogLink)));
         await writer.Write(new SyndicationPerson(blogConfig.Author, blogConfig.Email));
         // await writer.WritePubDate(DateTimeOffset.UtcNow);
 
         foreach (var post in posts.OrderByDescending(p => p.FrontMatter.CreateTime))
         {
-            var postLink = $"{blogConfig.Link}{post.PostRoute}";
+            var postLink = $"{blogConfig.BlogLink}{post.PostRoute}";
             var item = new AtomEntry
             {
                 Id = postLink,

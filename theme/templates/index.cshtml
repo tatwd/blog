@@ -57,7 +57,7 @@
 </head>
 
 <body>
-  <header class="container" style="margin-top: 5.6rem;">
+  <header class="container" style="margin-top: 5.6rem; margin-bottom: 4rem">
     <p style="position: relative;">
       <img src="/avatar.jpg" alt="avatar" height="100" style="display: block;" />
       <span class="theme-icon" id="dark-theme-icon" style="display: none;">🌛</span>
@@ -67,19 +67,19 @@
       @Model.BlogConfig.Title
     </h1>
     <div class="text-light">
-      <a class="underline" href="/tips">tips</a>
-      •
-      <a class="underline" target="_blank" href="https://slides.tatwd.me">slides</a>
-      •
-      <a class="underline" target="_blank" href="https://github.com/tatwd">github</a>
-      •
-      <a class="underline" href="mailto:@Model.BlogConfig.Email">mail</a>
-      •
-      <a class="underline" target="_blank" href="/atom.xml">rss</a>
+      @for (var i = 0; i < Model.BlogConfig.Links.Length; i++)
+      {
+        var link = Model.BlogConfig.Links[i];
+        if (i > 0)
+        {
+          <span style="vertical-align: middle;font-weight: 600;">•</span>
+        }
+        <a class="underline" href="@link.Url">@link.Title</a>
+      }
     </div>
   </header>
-  <main class="container" style="padding-top: 2.5rem">
-    <ul>
+  <main class="container">
+    <ul style="border-top: 1px solid rgba(209,213,219,0.8); padding-top: 3rem">
       @foreach (var item in Model.Posts)
       {
         <li style="margin-top: 0.5rem; margin-bottom: 1.5rem">
@@ -96,7 +96,7 @@
       }
     </ul>
   </main>
-  <footer class="container text-light text-sm" style="padding-bottom: 2.5rem; padding-top: 2rem">
+  <footer class="container text-light text-sm" style="padding-bottom: 4rem; padding-top: 3rem">
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
     2017-PRESENT © @Model.BlogConfig.Author
   </footer>

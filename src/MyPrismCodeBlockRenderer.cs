@@ -12,10 +12,12 @@ namespace MyBlog;
 public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
 {
     private readonly CodeBlockRenderer _codeBlockRenderer;
+    private readonly HtmlHighlighter _htmlHighlighter;
 
     public MyPrismCodeBlockRenderer()
     {
         _codeBlockRenderer = new CodeBlockRenderer();
+        _htmlHighlighter = new HtmlHighlighter();
     }
 
     protected override void Write(HtmlRenderer renderer, CodeBlock node)
@@ -61,11 +63,10 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
     private string HighlightCode(LeafBlock node, Grammar grammar, string language)
     {
         var text = node.Lines.ToString();
-        var highlighter = new HtmlHighlighter();
 #if DEBUG
         var sw = Stopwatch.StartNew();
 #endif
-        var html = highlighter.Highlight(text, grammar, language);
+        var html = _htmlHighlighter.Highlight(text, grammar, language);
 #if DEBUG
         sw.Stop();
         Console.WriteLine($"DEBUG: highlighter.Highlight took {sw.ElapsedMilliseconds}ms for `{language}` code.");
