@@ -39,7 +39,7 @@ var cmdArgs = new ConfigurationBuilder()
 
 var cwd = (cmdArgs["cwd"] ?? Directory.GetCurrentDirectory()).TrimEnd('/').TrimEnd('\\');
 var distDir = cmdArgs["dist"] ?? $"{cwd}/dist";
-var postDir = cmdArgs["posts"] ?? $"{cwd}/posts";
+var postsDir = cmdArgs["posts"] ?? $"{cwd}/posts";
 var themeDir = cmdArgs["theme"] ?? $"{cwd}/theme";
 var themeStyleDir = $"{themeDir}/styles";
 var themeTemplateDir = $"{themeDir}/templates";
@@ -47,7 +47,7 @@ var isDev = !string.IsNullOrEmpty(cmdArgs["dev"]);
 
 Console.WriteLine("cwd: {0}", cwd);
 Console.WriteLine("distDir: {0}", distDir);
-Console.WriteLine("postDir: {0}", postDir);
+Console.WriteLine("postDir: {0}", postsDir);
 Console.WriteLine("themeDir: {0}", themeDir);
 Console.WriteLine("isDev: {0}", isDev);
 
@@ -59,19 +59,44 @@ var markdownRenderer = new MarkdownRenderer();
 
 // Generate post pages
 var posts = new List<PostViewModel>(16);
-var themePostTemplateFilePath = $"{themeTemplateDir}/post.cshtml";
-var themePostTemplateContent = File.ReadAllText(themePostTemplateFilePath);
+
+var markdownDirList = new []
+{
+    postsDir, // default template is 'post'
+    $"{cwd}/spa" //default template is 'spa'
+};
+
+
+var compiledTemplateMap = new []
+    {
+        "index",
+        "post",
+        "tag",
+        "about",
+        "spa",
+        "404",
+    }
+    .Select(name => new
+        {
+            name,
+            content =  File.ReadAllText($"{themeTemplateDir}/{name}.cshtml")
+        })
+    .ToDictionary(
+        item => item.name,
+        item => razorEngine.Compile(item.content, option =>
+        {
+            option.AddAssemblyReference(typeof(Util));
+        }));
+
+
 
 // All posts use a same razor template
-var themePostTemplate = await razorEngine.CompileAsync(themePostTemplateContent, option =>
-{
-    option.AddAssemblyReference(typeof(Util));
-});
+var themePostTemplate = compiledTemplateMap["post"];
 
-var postFiles = Directory.GetFiles(postDir, "*", SearchOption.AllDirectories);
+var postFiles = Directory.GetFiles(postsDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
-    var newPath = path.Replace(postDir, $"{distDir}/posts");
+    var newPath = path.Replace(postsDir, $"{distDir}/posts");
     Util.CreateDirIfNotExists(newPath);
 
     // Copy other files to dist, just like images etc.
@@ -129,18 +154,11 @@ var homeViewModel = new
     BlogConfig = blogConfig,
     Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
 };
-var themeHomeTemplateContent = File.ReadAllText($"{themeTemplateDir}/index.cshtml");
-var themeHomeTemplate = await razorEngine.CompileAsync(themeHomeTemplateContent, option =>
-{
-    option.AddAssemblyReference(typeof(Util));
-});
-await SaveRenderedRazorPageAsync(themeHomeTemplate, $"{distDir}/index.html", homeViewModel);
+await SaveRenderedRazorPageAsync(compiledTemplateMap["index"], $"{distDir}/index.html", homeViewModel);
 Console.WriteLine("Generated: /index.html");
 
 // Generate 404.html
-var theme404TemplateContent = File.ReadAllText($"{themeTemplateDir}/404.cshtml");
-var theme404Template = await razorEngine.CompileAsync(theme404TemplateContent);
-await SaveRenderedRazorPageAsync(theme404Template, $"{distDir}/404.html");
+await SaveRenderedRazorPageAsync(compiledTemplateMap["404"], $"{distDir}/404.html");
 Console.WriteLine("Generated: /404.html");
 
 // Map all posts with same tag
@@ -160,11 +178,6 @@ foreach (var post in posts)
 }
 
 // Generate tag pages
-var themeTagTemplateContent = File.ReadAllText($"{themeTemplateDir}/tag.cshtml");
-var themeTagTemplate = await razorEngine.CompileAsync(themeTagTemplateContent, option =>
-{
-    option.AddAssemblyReference(typeof(Util));
-});
 foreach (var(tagName, postsWithSameTag) in mapTags)
 {
     var model = new
@@ -174,11 +187,11 @@ foreach (var(tagName, postsWithSameTag) in mapTags)
         Posts = postsWithSameTag.OrderByDescending(p => p.FrontMatter.CreateTime)
     };
     var newTagRoute = $"/tags/{Util.ReplaceWhiteSpaceByLodash(tagName)}/index.html";
-    await SaveRenderedRazorPageAsync(themeTagTemplate, $"{distDir}{newTagRoute}", model);
+    await SaveRenderedRazorPageAsync(compiledTemplateMap["tag"], $"{distDir}{newTagRoute}", model);
     Console.WriteLine("Generated: {0}", newTagRoute);
 }
 
-// Copy other files in theme directory
+// Copy other static files in theme directory
 var otherThemeFiles = Directory.GetFiles(themeDir, "*", SearchOption.AllDirectories);
 foreach (var path in otherThemeFiles.AsParallel())
 {
@@ -198,21 +211,16 @@ Console.WriteLine("Generated: /atom.xml");
 
 
 // Generate all SPA
-var spaTemplateContent = File.ReadAllText($"{themeTemplateDir}/spa.cshtml");
-var spaTemplate = await razorEngine.CompileAsync(spaTemplateContent);
-var aboutTemplateContent = File.ReadAllText($"{themeTemplateDir}/about.cshtml");
-var aboutTemplate = await razorEngine.CompileAsync(aboutTemplateContent);
-
 var spaDir = $"{cwd}/spa";
 var spaFiles = Directory.GetFiles(spaDir, "*", SearchOption.AllDirectories);
 foreach (var path in spaFiles.AsParallel())
 {
     var newPath = path.Replace(spaDir, distDir);
+    Util.CreateDirIfNotExists(newPath);
 
     // Do not copy any files in templates dir
     if (!path.EndsWith(".md"))
     {
-        Util.CreateDirIfNotExists(newPath);
         File.Copy(path, newPath, true);
         Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
         continue;
@@ -231,16 +239,14 @@ foreach (var path in spaFiles.AsParallel())
         BlogConfig = blogConfig
     };
 
-    // TODO: need refactor
-    var result = "about" == frontMatter.TemplateName
-        ? aboutTemplate.Run(spaViewModel)
-        : spaTemplate.Run(spaViewModel);
+    var templateName = frontMatter?.TemplateName ?? "spa";
+    var compiledTemplate = compiledTemplateMap[templateName];
+    var result = await compiledTemplate.RunAsync(spaViewModel);
 
     Util.CreateDirIfNotExists(htmlFile);
     using StreamWriter swPost = File.CreateText(htmlFile);
     await swPost.WriteAsync(result);
     Console.WriteLine("Generated: {0}/index.html", postRoute);
-
 }
 
 
