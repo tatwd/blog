@@ -55,16 +55,7 @@ if (Directory.Exists(distDir))
     Directory.Delete(distDir, true);
 
 var razorEngine = new RazorEngine();
-var pipeline = new MarkdownPipelineBuilder()
-    .UseAdvancedExtensions()
-    .UseYamlFrontMatter()
-    .UsePreciseSourceLocation()
-    .UseSoftlineBreakAsHardlineBreak()
-    .Use<MyPrismExtension>()
-    .Build();
-var yamlDeserializer = new DeserializerBuilder()
-    .IgnoreUnmatchedProperties()
-    .Build();
+var markdownRenderer = new MarkdownRenderer();
 
 // Generate post pages
 var posts = new List<PostViewModel>(16);
@@ -95,31 +86,12 @@ foreach (var path in postFiles.AsParallel())
     var htmlFileName = Path.GetFileName(htmlFile);
     var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, "")) !;
 
-    using var writer = new StringWriter();
-    var renderer = new HtmlRenderer(writer)
-    {
-        LinkRewriter = (link) =>
-        {
-            if (link.StartsWith("./"))
-                return postRoute + link.Substring(1);
-            //if (!link.StartsWith("/"))
-            //    return  postRoute + "/" + link;
-            return link;
-        }
-    };
-    pipeline.Setup(renderer);
     var mdText = File.ReadAllText(path);
-    var document = MarkdownParser.Parse(mdText, pipeline);
-    var postFrontMatter = GetPostFrontMatter(document);
+    var (html, postFrontMatter) = markdownRenderer.Render(mdText, postRoute);
 
     // Do not  publish draft item if env is not development.
     if (!isDev && postFrontMatter.Draft)
         continue;
-
-    renderer.Render(document);
-    writer.Flush();
-    var html = writer.ToString();
-    // var html = Markdown.ToHtml(mdText, pipline);
 
     // var plainText = Markdown.ToPlainText(mdText, pipeline);
     var plainText = Util.Html2Text(html);
@@ -249,35 +221,18 @@ foreach (var path in spaFiles.AsParallel())
     var mdFileName = Path.GetFileName(newPath);
     var htmlFile = newPath.Replace(".md", "/index.html");
     var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, ""))!;
-
-
-    using var writer = new StringWriter();
-    var renderer = new HtmlRenderer(writer)
-    {
-        LinkRewriter = (link) =>
-        {
-            if (link.StartsWith("./"))
-                return postRoute + link.Substring(1);
-            return link;
-        }
-    };
-    pipeline.Setup(renderer);
     var mdText = File.ReadAllText(path);
-    var document = MarkdownParser.Parse(mdText, pipeline);
-    var postFrontMatter = GetPostFrontMatter(document);
-    renderer.Render(document);
-    writer.Flush();
-    var html = writer.ToString();
+    var (html, frontMatter) = markdownRenderer.Render(mdText, postRoute);
 
     var spaViewModel = new
     {
-        PageTitle = postFrontMatter.Title,
+        PageTitle = frontMatter.Title,
         PageContent = html,
         BlogConfig = blogConfig
     };
 
     // TODO: need refactor
-    var result = "about" == postFrontMatter.TemplateName
+    var result = "about" == frontMatter.TemplateName
         ? aboutTemplate.Run(spaViewModel)
         : spaTemplate.Run(spaViewModel);
 
@@ -297,42 +252,6 @@ async Task SaveRenderedRazorPageAsync(IRazorEngineCompiledTemplate template, str
     var html = template.Run(model);
     using StreamWriter sw = File.CreateText(distPath);
     await sw.WriteAsync(html);
-}
-
-PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
-{
-    var block = document
-        .Descendants<YamlFrontMatterBlock>()
-        .FirstOrDefault();
-
-    if (block is null)
-        throw new ArgumentNullException(nameof(block), "Post must have a front matter!");
-
-    var yaml =
-        block
-        // this is not a mistake
-        // we have to call .Lines 2x
-        .Lines // StringLineGroup[]
-        .Lines // StringLine[]
-        .OrderByDescending(x => x.Line)
-        .Select(x => $"{x}\n")
-        .ToList()
-        .Select(x => x.Replace("---", string.Empty))
-        .Where(x => !string.IsNullOrWhiteSpace(x))
-        .Aggregate((s, agg) => agg + s);
-
-    var frontMatter = yamlDeserializer.Deserialize<PostFrontMatterViewModel>(yaml)!;
-
-    if (string.IsNullOrEmpty(frontMatter.Title))
-        throw new ArgumentNullException(nameof(frontMatter.Title),
-            "Post `title` is required in front matter!");
-    if (frontMatter.CreateTime == default)
-        throw new ArgumentNullException(nameof(frontMatter.CreateTime),
-            "Post `create_time` is required in front matter!");
-
-    frontMatter.Tags = frontMatter.Tags ?? Array.Empty<string>();
-
-    return frontMatter;
 }
 
 
