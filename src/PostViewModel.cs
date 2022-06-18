@@ -10,3 +10,11 @@ public class PostViewModel
     public PostFrontMatterViewModel FrontMatter { get; set; } = null!;
     public string PostTitle => FrontMatter.Title;
 }
+
+
+public class Post
+{
+    public string Title { get; set; } = null!;
+    public string Pathname { get; set; } = null!;
+    public string HtmlContent { get; set; } = null!;
+}

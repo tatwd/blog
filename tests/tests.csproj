@@ -24,4 +24,10 @@
     <ProjectReference Include="..\src\blog.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="posts\test-post.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
