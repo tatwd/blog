@@ -2,7 +2,7 @@ using YamlDotNet.Serialization;
 
 namespace MyBlog;
 
-public class PostFrontMatterViewModel
+public class PostFrontMatter
 {
     [YamlMember(Alias = "title")]
     public string Title { get; set; } = null!;

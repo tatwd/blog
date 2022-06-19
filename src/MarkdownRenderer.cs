@@ -29,7 +29,7 @@ public class MarkdownRenderer
     }
 
 
-    public (string html, PostFrontMatterViewModel frontMatter) Render(string markdownText, string pathname)
+    public (string html, PostFrontMatter frontMatter) Render(string markdownText, string pathname)
     {
         using var writer = new StringWriter();
 
@@ -57,7 +57,7 @@ public class MarkdownRenderer
     }
 
 
-    PostFrontMatterViewModel GetPostFrontMatter(MarkdownDocument document)
+    PostFrontMatter GetPostFrontMatter(MarkdownDocument document)
     {
         var block = document
             .Descendants<YamlFrontMatterBlock>()
@@ -79,7 +79,7 @@ public class MarkdownRenderer
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Aggregate((s, agg) => agg + s);
 
-        var frontMatter = _yamlDeserializer.Deserialize<PostFrontMatterViewModel>(yaml)!;
+        var frontMatter = _yamlDeserializer.Deserialize<PostFrontMatter>(yaml)!;
 
         if (string.IsNullOrEmpty(frontMatter.Title))
             throw new ArgumentNullException(nameof(frontMatter.Title),
