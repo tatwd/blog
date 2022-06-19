@@ -4,8 +4,9 @@ namespace MyBlog;
 /// <example>
 ///
 ///     var blog = new Blog(settings: new BlogConfig {
-///         Title = "",
-///         Output = "./dist"
+///         Title = "My Blog",
+///         Author = "Foo",
+///         Description = "bababaabba",
 ///     });
 ///     if (env.IsDev) {
 ///         blog.Serve(port: 8080); // start a http server
