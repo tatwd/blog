@@ -104,9 +104,7 @@ foreach (var path in postFiles.AsParallel())
     }
 
     var htmlFile = newPath.Replace(".md", ".html");
-    // var htmlFileName = Path.GetFileName(htmlFile);
-    var postRoute = htmlFile.Replace(distDir, "");
-    var pathname = Path.GetDirectoryName(postRoute)!;
+    var pathname = htmlFile.Replace(distDir, "");
 
     var mdText = File.ReadAllText(path);
     var (html, postFrontMatter) = markdownRenderer.Render(mdText, pathname);
@@ -125,17 +123,14 @@ foreach (var path in postFiles.AsParallel())
         PostContent = html,
         TimeToRead = timeToRead,
         AbstractText = abstractText,
-        PostRoute = postRoute,
+        PostRoute = RewriteIndexHtml(pathname),
         FrontMatter = postFrontMatter
     };
     posts.Add(postViewModel);
 
     // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
-    var result = themePostTemplate.Run(postViewModel);
-
-    using StreamWriter swPost = File.CreateText(htmlFile);
-    await swPost.WriteAsync(result);
-    Console.WriteLine("Generated: {0}", postRoute);
+    await SaveRenderedRazorPageAsync(themePostTemplate, htmlFile, postViewModel);
+    Console.WriteLine("Generated: {0}", pathname);
 }
 
 // Generate index.html
@@ -218,8 +213,7 @@ foreach (var path in spaFiles.AsParallel())
 
     // var mdFileName = Path.GetFileName(newPath);
     var htmlFile = newPath.Replace(".md", "/index.html");
-    var postRoute = htmlFile.Replace(distDir, "");
-    var pathname = Path.GetDirectoryName(postRoute)!;
+    var pathname = htmlFile.Replace(distDir, "");
     var mdText = File.ReadAllText(path);
     var (html, frontMatter) = markdownRenderer.Render(mdText, pathname);
 
@@ -232,14 +226,14 @@ foreach (var path in spaFiles.AsParallel())
 
     var templateName = frontMatter?.TemplateName ?? "spa";
     var compiledTemplate = compiledTemplateMap[templateName];
-    // var result = await compiledTemplate.RunAsync(spaViewModel);
-    // Util.CreateDirIfNotExists(htmlFile);
-    // using StreamWriter swPost = File.CreateText(htmlFile);
-    // await swPost.WriteAsync(result);
     await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, spaViewModel);
-    Console.WriteLine("Generated: {0}", postRoute);
+    Console.WriteLine("Generated: {0}", pathname);
 }
 
+string RewriteIndexHtml(string pathname)
+{
+    return pathname.EndsWith("/index.html") ? pathname.Replace("/index.html", "") : pathname;
+}
 
 
 async Task SaveRenderedRazorPageAsync(IRazorEngineCompiledTemplate template, string distPath, object? model = null)

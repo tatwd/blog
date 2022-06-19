@@ -18,6 +18,6 @@ public class PostFrontMatterViewModel
 
     [YamlMember(Alias = "draft")]
     public bool Draft { get; set; }
-    [YamlMember(Alias = "pathname")]
-    public string? Pathname { get; set; }
+    // [YamlMember(Alias = "pathname")]
+    // public string? Pathname { get; set; }
 }

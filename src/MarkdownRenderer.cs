@@ -39,9 +39,8 @@ public class MarkdownRenderer
         var document = MarkdownParser.Parse(markdownText, _markdownPipeline);
         var frontMatter = GetPostFrontMatter(document)!;
 
-        var usePathname = frontMatter.Pathname ?? pathname;
+        // var usePathname = frontMatter.Pathname ?? pathname;
 
-        // renderer.BaseUrl = new Uri("/fooo");
         renderer.LinkRewriter = link =>
         {
             // if (link.StartsWith("./"))
