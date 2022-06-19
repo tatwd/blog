@@ -1,7 +1,7 @@
 ---
 title: hello test
 create_time: 2022-06-18
-pathname: /fooo
+template: spa
 ---
 
 ffabjvhajfva
