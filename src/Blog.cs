@@ -71,7 +71,8 @@ public class Blog
         return new Post
         {
             Title = frontMatter.Title,
-            Pathname = pathname
+            Pathname = pathname,
+            HtmlContent = html
         };
     }
 
