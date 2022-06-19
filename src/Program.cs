@@ -86,8 +86,6 @@ var compiledTemplateMap = new []
 
 
 // All posts use a same razor template
-var themePostTemplate = compiledTemplateMap["post"];
-
 var postFiles = Directory.GetFiles(postsDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
@@ -109,10 +107,10 @@ foreach (var path in postFiles.AsParallel())
     var pathname = Path.GetDirectoryName(postRoute)!;
 
     var mdText = File.ReadAllText(path);
-    var (html, postFrontMatter) = markdownRenderer.Render(mdText, pathname);
+    var (html, frontMatter) = markdownRenderer.Render(mdText, pathname);
 
     // Do not  publish draft item if env is not development.
-    if (!isDev && postFrontMatter.Draft)
+    if (!isDev && frontMatter.Draft)
         continue;
 
     var plainText = Util.Html2Text(html);
@@ -122,20 +120,18 @@ foreach (var path in postFiles.AsParallel())
     var postViewModel = new PostViewModel
     {
         BlogConfig = blogConfig,
-        PostContent = html,
+        Content = html,
         TimeToRead = timeToRead,
         AbstractText = abstractText,
         PostRoute = postRoute,
-        FrontMatter = postFrontMatter
+        FrontMatter = frontMatter
     };
     posts.Add(postViewModel);
 
     // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
-    var result = themePostTemplate.Run(postViewModel);
-
-    using StreamWriter swPost = File.CreateText(htmlFile);
-    await swPost.WriteAsync(result);
-    Console.WriteLine("Generated: {0}", postRoute);
+    var compiledTemplate = compiledTemplateMap[frontMatter?.TemplateName ?? "post"];
+    await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, postViewModel);
+    Console.WriteLine("Generated: {0}", pathname);
 }
 
 // Generate index.html
@@ -225,8 +221,8 @@ foreach (var path in spaFiles.AsParallel())
 
     var spaViewModel = new
     {
-        PageTitle = frontMatter.Title,
-        PageContent = html,
+        Title = frontMatter.Title,
+        Content = html,
         BlogConfig = blogConfig
     };
 
@@ -274,7 +270,7 @@ async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
             var item = new AtomEntry
             {
                 Id = postLink,
-                Title = post.PostTitle,
+                Title = post.Title,
                 Published = post.FrontMatter.CreateTime,
                 LastUpdated = post.FrontMatter.CreateTime,
                 // ContentType = "html",
