@@ -1,15 +1,9 @@
 ﻿using System.Xml;
-using Markdig;
-using Markdig.Extensions.Yaml;
-using Markdig.Parsers;
-using Markdig.Renderers;
-using Markdig.Syntax;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SyndicationFeed;
 using Microsoft.SyndicationFeed.Atom;
 using MyBlog;
 using RazorEngineCore;
-using YamlDotNet.Serialization;
 
 // My blog global config, maybe should set in a config file.
 var blogConfig = new BlogConfig
@@ -25,6 +19,7 @@ var blogConfig = new BlogConfig
         new MyLink{Title = "tools", Url = "/tools" },
         new MyLink{Title = "slides", Url = "https://slides.tatwd.me" },
         new MyLink{Title = "github", Url = "https://github.com/tatwd" },
+        new MyLink{Title = "mail", Url = "mailto:tatwdo@gmail.com" },
         new MyLink{Title = "rss", Url = "/atom.xml" },
     }
 };
@@ -96,7 +91,8 @@ var themePostTemplate = compiledTemplateMap["post"];
 var postFiles = Directory.GetFiles(postsDir, "*", SearchOption.AllDirectories);
 foreach (var path in postFiles.AsParallel())
 {
-    var newPath = path.Replace(postsDir, $"{distDir}/posts");
+    var outputDir = $"{distDir}/posts";
+    var newPath = path.Replace(postsDir, outputDir);
     Util.CreateDirIfNotExists(newPath);
 
     // Copy other files to dist, just like images etc.
@@ -108,26 +104,20 @@ foreach (var path in postFiles.AsParallel())
     }
 
     var htmlFile = newPath.Replace(".md", ".html");
-    var htmlFileName = Path.GetFileName(htmlFile);
-    var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, "")) !;
+    // var htmlFileName = Path.GetFileName(htmlFile);
+    var postRoute = htmlFile.Replace(distDir, "");
+    var pathname = Path.GetDirectoryName(postRoute)!;
 
     var mdText = File.ReadAllText(path);
-    var (html, postFrontMatter) = markdownRenderer.Render(mdText, postRoute);
+    var (html, postFrontMatter) = markdownRenderer.Render(mdText, pathname);
 
     // Do not  publish draft item if env is not development.
     if (!isDev && postFrontMatter.Draft)
         continue;
 
-    // var plainText = Markdown.ToPlainText(mdText, pipeline);
     var plainText = Util.Html2Text(html);
     var timeToRead = Util.CalcTimeToRead(plainText);
-    // var abstractText = plainText.Substring(0, Math.Min(plainText.Length, 140)).Replace("\n", " ");
     var abstractText = Util.GenerateAbstractText(plainText);
-
-    var fileNameWithoutExt = Path.GetFileNameWithoutExtension(newPath);
-    var parentDir = Directory.GetParent(newPath) !;
-    var isPostPageDir = parentDir.FullName.EndsWith("/posts");
-    var newPostRoute = isPostPageDir ? postRoute + "/" + htmlFileName : postRoute;
 
     var postViewModel = new PostViewModel
     {
@@ -135,7 +125,7 @@ foreach (var path in postFiles.AsParallel())
         PostContent = html,
         TimeToRead = timeToRead,
         AbstractText = abstractText,
-        PostRoute = newPostRoute,
+        PostRoute = postRoute,
         FrontMatter = postFrontMatter
     };
     posts.Add(postViewModel);
@@ -145,7 +135,7 @@ foreach (var path in postFiles.AsParallel())
 
     using StreamWriter swPost = File.CreateText(htmlFile);
     await swPost.WriteAsync(result);
-    Console.WriteLine("Generated: {0}/{1}", postRoute, htmlFileName);
+    Console.WriteLine("Generated: {0}", postRoute);
 }
 
 // Generate index.html
@@ -226,11 +216,12 @@ foreach (var path in spaFiles.AsParallel())
         continue;
     }
 
-    var mdFileName = Path.GetFileName(newPath);
+    // var mdFileName = Path.GetFileName(newPath);
     var htmlFile = newPath.Replace(".md", "/index.html");
-    var postRoute = Path.GetDirectoryName(htmlFile.Replace(distDir, ""))!;
+    var postRoute = htmlFile.Replace(distDir, "");
+    var pathname = Path.GetDirectoryName(postRoute)!;
     var mdText = File.ReadAllText(path);
-    var (html, frontMatter) = markdownRenderer.Render(mdText, postRoute);
+    var (html, frontMatter) = markdownRenderer.Render(mdText, pathname);
 
     var spaViewModel = new
     {
@@ -241,12 +232,12 @@ foreach (var path in spaFiles.AsParallel())
 
     var templateName = frontMatter?.TemplateName ?? "spa";
     var compiledTemplate = compiledTemplateMap[templateName];
-    var result = await compiledTemplate.RunAsync(spaViewModel);
-
-    Util.CreateDirIfNotExists(htmlFile);
-    using StreamWriter swPost = File.CreateText(htmlFile);
-    await swPost.WriteAsync(result);
-    Console.WriteLine("Generated: {0}/index.html", postRoute);
+    // var result = await compiledTemplate.RunAsync(spaViewModel);
+    // Util.CreateDirIfNotExists(htmlFile);
+    // using StreamWriter swPost = File.CreateText(htmlFile);
+    // await swPost.WriteAsync(result);
+    await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, spaViewModel);
+    Console.WriteLine("Generated: {0}", postRoute);
 }
 
 
@@ -286,16 +277,15 @@ async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
                 Title = post.PostTitle,
                 Published = post.FrontMatter.CreateTime,
                 LastUpdated = post.FrontMatter.CreateTime,
-                ContentType = "html",
-                Description = post.PostContent,
+                // ContentType = "html",
                 Summary = post.AbstractText
             };
 
             item.AddContributor(new SyndicationPerson(blogConfig.Author, blogConfig.Email, AtomContributorTypes.Author));
             item.AddLink(new SyndicationLink(new Uri(postLink)));
 
-            foreach (var tag in post.FrontMatter.Tags)
-                item.AddCategory(new SyndicationCategory(tag));
+            // foreach (var tag in post.FrontMatter.Tags)
+            //     item.AddCategory(new SyndicationCategory(tag));
 
             await writer.Write(item);
         }
