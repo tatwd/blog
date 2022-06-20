@@ -8,12 +8,12 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  @if (!string.IsNullOrEmpty(Model.AbstractText))
+  @if (!string.IsNullOrEmpty(Model.Post.AbstractText))
   {
-    <meta name="description" content="@Model.AbstractText" />
+    <meta name="description" content="@Model.Post.AbstractText" />
   }
 
-  <title>@Model.Title</title>
+  <title>@Model.Post.Title</title>
   <link rel="stylesheet" href="/styles/dark.css" />
   <link rel="stylesheet" href="/styles/app.css" />
   <link rel="stylesheet" href="/styles/post.css" />
@@ -46,19 +46,19 @@
     <div style="margin-top: 1.25rem">
       <a class="font-mono underline" href="/">cd ..</a>
     </div>
-    <h1 class="font-sans text-black">@Model.Title</h1>
+    <h1 class="font-sans text-black">@Model.Post.Title</h1>
     <small class="text-light">
-      <span>@Model.FrontMatter.CreateTime.ToString("MMMM d, yyyy")</span>
+      <span>@Model.Post.CreateTime.ToString("MMMM d, yyyy")</span>
       •
-      <span>@Util.FormatReadingTime(Model.TimeToRead)</span>
-      @foreach (var tag in Model.FrontMatter.Tags)
+      <span>@Util.FormatReadingTime(Model.Post.TimeToRead)</span>
+      @foreach (var tag in Model.Post.Tags)
       {
         <a class="hover-underline" href="/tags/@Util.ReplaceWhiteSpaceByLodash(tag)/">#@tag</a>
       }
     </small>
   </header>
   <main class="container" style="padding-top: 1.75rem;">
-    <article>@Model.Content</article>
+    <article>@Model.Post.HtmlContent</article>
   </main>
   <footer class="container text-light text-sm" style="padding-bottom: 4rem; padding-top: 3rem">
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
