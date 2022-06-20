@@ -15,15 +15,13 @@ article img {
   max-width: 100%;
   height: auto;
   display: block;
-  margin-top: 2em;
-  margin-bottom: 2em;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 2em auto;
 }
 
 article a {
   border-bottom: 2px solid transparent;
   padding-bottom: 0.2em;
+  word-break: break-word;
 }
 
 article a:hover {

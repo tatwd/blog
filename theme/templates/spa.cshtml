@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>@Model.Title</title>
+  <title>@Model.Post.Title</title>
   <link rel="stylesheet" href="/styles/dark.css" />
   <link rel="stylesheet" href="/styles/app.css" />
   <link rel="stylesheet" href="/styles/post.css" />
@@ -38,10 +38,10 @@
     <div style="margin-top: 1.25rem">
       <a class="font-mono underline" href="/">cd ..</a>
     </div>
-    <h1 class="font-sans text-black">@Model.Title</h1>
+    <h1 class="font-sans text-black">@Model.Post.Title</h1>
   </header>
   <main class="container" style="padding-top: 1.75rem;">
-    <article>@Model.Content</article>
+    <article>@Model.Post.HtmlContent</article>
   </main>
   <footer class="container text-light text-sm" style="padding-bottom: 4rem; padding-top: 3rem">
     <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>

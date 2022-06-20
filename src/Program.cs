@@ -53,13 +53,13 @@ var razorEngine = new RazorEngine();
 var markdownRenderer = new MarkdownRenderer();
 
 // Generate post pages
-var posts = new List<PostViewModel>(16);
+var globalPosts = new List<Post>(16);
 
-var markdownDirList = new []
-{
-    postsDir, // default template is 'post'
-    $"{cwd}/spa" //default template is 'spa'
-};
+// var markdownDirList = new []
+// {
+//     postsDir, // default template is 'post'
+//     $"{cwd}/spa" //default template is 'spa'
+// };
 
 
 var compiledTemplateMap = new []
@@ -97,7 +97,7 @@ foreach (var path in postFiles.AsParallel())
     if (!newPath.EndsWith(".md"))
     {
         File.Copy(path, newPath, true);
-        Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
+        Console.WriteLine("Generated: {0} (copied)", newPath.Replace(distDir, ""));
         continue;
     }
 
@@ -115,20 +115,21 @@ foreach (var path in postFiles.AsParallel())
     var timeToRead = Util.CalcTimeToRead(plainText);
     var abstractText = Util.GenerateAbstractText(plainText);
 
-    var postViewModel = new PostViewModel
+    var post = new Post
     {
-        BlogConfig = blogConfig,
-        Content = html,
+        Title = frontMatter.Title,
+        HtmlContent = html,
         TimeToRead = timeToRead,
         AbstractText = abstractText,
-        PostRoute = RewriteIndexHtml(pathname),
-        FrontMatter = frontMatter
+        CreateTime = frontMatter.CreateTime,
+        Tags = frontMatter.Tags,
+        Pathname = RewriteIndexHtml(pathname)
     };
-    posts.Add(postViewModel);
+    globalPosts.Add(post);
 
     // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
-    var compiledTemplate = compiledTemplateMap[frontMatter?.TemplateName ?? "post"];
-    await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, postViewModel);
+    var compiledTemplate = compiledTemplateMap[frontMatter.TemplateName ?? "post"];
+    await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, new { Post = post, BlogConfig = blogConfig });
     Console.WriteLine("Generated: {0}", pathname);
 }
 
@@ -136,7 +137,7 @@ foreach (var path in postFiles.AsParallel())
 var homeViewModel = new
 {
     BlogConfig = blogConfig,
-    Posts = posts.OrderByDescending(p => p.FrontMatter.CreateTime)
+    Posts = globalPosts.OrderByDescending(p => p.CreateTime)
 };
 await SaveRenderedRazorPageAsync(compiledTemplateMap["index"], $"{distDir}/index.html", homeViewModel);
 Console.WriteLine("Generated: /index.html");
@@ -146,16 +147,16 @@ await SaveRenderedRazorPageAsync(compiledTemplateMap["404"], $"{distDir}/404.htm
 Console.WriteLine("Generated: /404.html");
 
 // Map all posts with same tag
-var mapTags = new Dictionary<string, IList<PostViewModel>>();
-foreach (var post in posts)
+var mapTags = new Dictionary<string, IList<Post>>();
+foreach (var post in globalPosts)
 {
-    if (post.FrontMatter.Tags is null)
+    if (!post.Tags.Any())
         continue;
 
-    foreach (var tagName in post.FrontMatter.Tags)
+    foreach (var tagName in post.Tags)
     {
         if (!mapTags.ContainsKey(tagName))
-            mapTags[tagName] = new List<PostViewModel> { post };
+            mapTags[tagName] = new List<Post> { post };
         else
             mapTags[tagName].Add(post);
     }
@@ -168,7 +169,7 @@ foreach (var(tagName, postsWithSameTag) in mapTags)
     {
         BlogConfig = blogConfig,
         TagName = tagName,
-        Posts = postsWithSameTag.OrderByDescending(p => p.FrontMatter.CreateTime)
+        Posts = postsWithSameTag.OrderByDescending(p => p.CreateTime)
     };
     var newTagRoute = $"/tags/{Util.ReplaceWhiteSpaceByLodash(tagName)}/index.html";
     await SaveRenderedRazorPageAsync(compiledTemplateMap["tag"], $"{distDir}{newTagRoute}", model);
@@ -186,11 +187,11 @@ foreach (var path in otherThemeFiles.AsParallel())
     var newPath = path.Replace(themeDir, distDir);
     Util.CreateDirIfNotExists(newPath);
     File.Copy(path, newPath, overwrite : true);
-    Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
+    Console.WriteLine("Generated: {0} (copied)", newPath.Replace(distDir, ""));
 }
 
 // Generate atom.xml fro all posts
-await WriteAtomFeedAync(posts, $"{distDir}/atom.xml");
+await WriteAtomFeedAsync(globalPosts, $"{distDir}/atom.xml");
 Console.WriteLine("Generated: /atom.xml");
 
 
@@ -206,7 +207,7 @@ foreach (var path in spaFiles.AsParallel())
     if (!path.EndsWith(".md"))
     {
         File.Copy(path, newPath, true);
-        Console.WriteLine("Generated: {0} (copyed)", newPath.Replace(distDir, ""));
+        Console.WriteLine("Generated: {0} (copied)", newPath.Replace(distDir, ""));
         continue;
     }
 
@@ -216,16 +217,20 @@ foreach (var path in spaFiles.AsParallel())
     var mdText = File.ReadAllText(path);
     var (html, frontMatter) = markdownRenderer.Render(mdText, pathname);
 
-    var spaViewModel = new
+    var post = new Post
     {
         Title = frontMatter.Title,
-        Content = html,
-        BlogConfig = blogConfig
+        HtmlContent = html,
+        // TimeToRead = timeToRead,
+        // AbstractText = abstractText,
+        CreateTime = frontMatter.CreateTime,
+        Tags = frontMatter.Tags,
+        Pathname = RewriteIndexHtml(pathname),
     };
 
-    var templateName = frontMatter?.TemplateName ?? "spa";
+    var templateName = frontMatter.TemplateName ?? "spa";
     var compiledTemplate = compiledTemplateMap[templateName];
-    await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, spaViewModel);
+    await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, new { Post = post, BlogConfig = blogConfig });
     Console.WriteLine("Generated: {0}", pathname);
 }
 
@@ -240,50 +245,46 @@ async Task SaveRenderedRazorPageAsync(IRazorEngineCompiledTemplate template, str
     Util.CreateDirIfNotExists(distPath);
 
     var html = template.Run(model);
-    using StreamWriter sw = File.CreateText(distPath);
+    await using var sw = File.CreateText(distPath);
     await sw.WriteAsync(html);
 }
 
 
-async Task WriteAtomFeedAync(IEnumerable<PostViewModel> posts, string distPath)
+async Task WriteAtomFeedAsync(IEnumerable<Post> posts, string distPath)
 {
     Util.CreateDirIfNotExists(distPath);
 
-    using StreamWriter sw = File.CreateText(distPath);
+    await using var sw = File.CreateText(distPath);
+    await using var xmlWriter = XmlWriter.Create(sw, new XmlWriterSettings { Async = true, Indent = true });
+    var writer = new AtomFeedWriter(xmlWriter);
+    await writer.WriteTitle(blogConfig.Title);
+    // await writer.WriteDescription(blogConfig.Description);
+    await writer.Write(new SyndicationLink(new Uri(blogConfig.BlogLink)));
+    await writer.Write(new SyndicationPerson(blogConfig.Author, blogConfig.Email));
+    // await writer.WritePubDate(DateTimeOffset.UtcNow);
 
-    using (XmlWriter xmlWriter = XmlWriter.Create(sw, new XmlWriterSettings() { Async = true , Indent = true }))
+    foreach (var post in posts.OrderByDescending(p => p.CreateTime))
     {
-
-        var writer = new AtomFeedWriter(xmlWriter);
-        await writer.WriteTitle(blogConfig.Title);
-        // await writer.WriteDescription(blogConfig.Description);
-        await writer.Write(new SyndicationLink(new Uri(blogConfig.BlogLink)));
-        await writer.Write(new SyndicationPerson(blogConfig.Author, blogConfig.Email));
-        // await writer.WritePubDate(DateTimeOffset.UtcNow);
-
-        foreach (var post in posts.OrderByDescending(p => p.FrontMatter.CreateTime))
+        var postLink = $"{blogConfig.BlogLink}{post.Pathname}";
+        var item = new AtomEntry
         {
-            var postLink = $"{blogConfig.BlogLink}{post.PostRoute}";
-            var item = new AtomEntry
-            {
-                Id = postLink,
-                Title = post.Title,
-                Published = post.FrontMatter.CreateTime,
-                LastUpdated = post.FrontMatter.CreateTime,
-                // ContentType = "html",
-                Summary = post.AbstractText
-            };
+            Id = postLink,
+            Title = post.Title,
+            Published = post.CreateTime,
+            LastUpdated = post.CreateTime,
+            // ContentType = "html",
+            Summary = post.AbstractText
+        };
 
-            item.AddContributor(new SyndicationPerson(blogConfig.Author, blogConfig.Email, AtomContributorTypes.Author));
-            item.AddLink(new SyndicationLink(new Uri(postLink)));
+        item.AddContributor(new SyndicationPerson(blogConfig.Author, blogConfig.Email, AtomContributorTypes.Author));
+        item.AddLink(new SyndicationLink(new Uri(postLink)));
 
-            // foreach (var tag in post.FrontMatter.Tags)
-            //     item.AddCategory(new SyndicationCategory(tag));
+        // foreach (var tag in post.FrontMatter.Tags)
+        //     item.AddCategory(new SyndicationCategory(tag));
 
-            await writer.Write(item);
-        }
-
-        xmlWriter.Flush();
+        await writer.Write(item);
     }
+
+    xmlWriter.Flush();
     await sw.FlushAsync();
 }

@@ -91,11 +91,9 @@ public static class Util
         foreach (var c in text)
         {
             if (abstractTextBuilder.Length >= 140 && char.IsPunctuation(c))
-            {
                 break;
-            }
 
-            abstractTextBuilder.Append(char.IsWhiteSpace(c) ? " " : c);
+            abstractTextBuilder.Append(char.IsWhiteSpace(c) ? " " : c.ToString());
         }
 
         return abstractTextBuilder.ToString();
