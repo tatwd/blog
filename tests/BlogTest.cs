@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace MyBlog.Tests;
@@ -6,14 +7,14 @@ namespace MyBlog.Tests;
 public class BlogTest
 {
     [Fact]
-    public void Build_Test()
+    public async Task Build_Test()
     {
         var blog = new Blog(new BlogConfig
         {
             BlogDirectory = "./"
         });
         Assert.NotNull(blog);
-        var ok = blog.Build("./dist");
-        Assert.True(ok);
+        await blog.BuildAsync("./dist");
+        Assert.True(Directory.Exists("./dist"));
     }
 }

@@ -11,4 +11,5 @@ public class Post
     // public string PostRoute { get; set; } = null!;
     public DateTime CreateTime { get; set; }
     public string[] Tags { get; set; } = Array.Empty<string>();
+    public string TemplateName { get; set; } = null!;
 }
