@@ -11,7 +11,7 @@ namespace MyBlog;
 ///     if (env.IsDev) {
 ///         blog.Serve(port: 8080); // start a http server
 ///     }
-///     blog.Build(outputDirectory: "./dist"); // build to ./dist folder
+///     await blog.BuildAsync(outputDirectory: "./dist"); // build to ./dist folder
 ///
 /// </example>
 /// </summary>
@@ -19,46 +19,45 @@ public class Blog
 {
     private readonly BlogConfig _blogConfig;
     private readonly MarkdownRenderer _markdownRenderer;
+    private readonly RazorRenderer _razorRenderer;
 
     public Blog(BlogConfig blogConfig)
     {
         if (string.IsNullOrEmpty(blogConfig.BlogDirectory))
             throw new ArgumentNullException(nameof(blogConfig.BlogDirectory));
 
+        blogConfig.PostsDirectory = blogConfig.PostsDirectory ?? $"{blogConfig.BlogDirectory}/posts";
+        blogConfig.ThemeDirectory = blogConfig.ThemeDirectory ?? $"{blogConfig.BlogDirectory}/theme";
+
         _blogConfig = blogConfig;
         _markdownRenderer = new MarkdownRenderer();
+        _razorRenderer = new RazorRenderer($"{_blogConfig.ThemeDirectory}/templates");
     }
 
-    public bool Build(string outputDirectory)
+    public Task BuildAsync(string outputDirectory)
     {
-        try
-        {
-            var posts = LoadPosts();
-            var outputPath = Path.GetFullPath(outputDirectory)!;
-            Util.CreateDirIfNotExists(outputPath);
-            return RenderPages(outputPath, posts);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            return false;
-        }
+        var posts = LoadPosts();
+        return RenderPagesAsync(outputDirectory!, posts);
     }
 
-    private bool RenderPages(string outputPath, IEnumerable<Post> posts)
+    private async Task RenderPagesAsync(string outputPath, IEnumerable<Post> posts)
     {
+        Util.CreateDirIfNotExists(outputPath);
+
         foreach (var post in posts)
         {
+            var html = await _razorRenderer.RenderPostPageAsync(post, _blogConfig);
+            var distPath = $"{outputPath}/{post.Pathname}.html";
+            Util.CreateDirIfNotExists(distPath);
+            using StreamWriter sw = File.CreateText(distPath);
+            await sw.WriteAsync(html);
         }
-
-        return false;
     }
 
     private IEnumerable<Post> LoadPosts()
     {
-        var postsDirectory = Path.GetFullPath(_blogConfig.PostsDirectory ?? Path.Join(_blogConfig.BlogDirectory, "posts"));
-        return Directory.GetFiles(postsDirectory, "*", SearchOption.AllDirectories)
-            .Where(path => path.EndsWith(".md"))
+        var postsDirectory = _blogConfig.PostsDirectory!;
+        return Directory.GetFiles(postsDirectory, "*.md", SearchOption.AllDirectories)
             .Select(path => LoadPost(postsDirectory, path));
     }
 
@@ -73,7 +72,8 @@ public class Blog
         {
             Title = frontMatter.Title,
             Pathname = pathname,
-            HtmlContent = html
+            HtmlContent = html,
+            TemplateName = frontMatter.TemplateName ?? "post"
         };
     }
 

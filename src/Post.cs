@@ -18,4 +18,5 @@ public class Post
     public string Title { get; set; } = null!;
     public string Pathname { get; set; } = null!;
     public string HtmlContent { get; set; } = null!;
+    public string TemplateName { get; set; } = null!;
 }

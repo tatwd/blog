@@ -1,0 +1,26 @@
+@using MyBlog;
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>@Model.Post.Title</title>
+</head>
+
+<body>
+  <header>
+    <h1>@Model.Post.Title</h1>
+  </header>
+  <main>
+    <article>@Model.Post.HtmlContent</article>
+  </main>
+  <footer>
+
+  </footer>
+
+</body>
+
+</html>
