@@ -17,7 +17,7 @@ var blogConfig = new BlogConfig
     {
         new MyLink{Title = "tips", Url = "/tips" },
         new MyLink{Title = "tools", Url = "/tools" },
-        new MyLink{Title = "slides", Url = "https://slides.tatwd.me" },
+        new MyLink{Title = "slides", Url = "https://slides.cloong.me" },
         new MyLink{Title = "github", Url = "https://github.com/tatwd" },
         new MyLink{Title = "mail", Url = "mailto:tatwdo@gmail.com" },
         new MyLink{Title = "rss", Url = "/atom.xml" },
