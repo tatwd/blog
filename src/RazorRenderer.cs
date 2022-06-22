@@ -32,8 +32,13 @@ public class RazorRenderer
 
     public Task<string> RenderPostPageAsync(Post post, BlogConfig blogConfig)
     {
-        var compiledTemplate = _compiledTemplateMap[post.TemplateName];
-        return compiledTemplate.RunAsync(new { Post = post, BlogConfig = blogConfig });
+        return RenderRazorPageAsync(post.TemplateName, new { Post = post, BlogConfig = blogConfig });
+    }
+
+    public Task<string> RenderRazorPageAsync<T>(string templateName, T model)
+    {
+        var compiledTemplate = _compiledTemplateMap[templateName];
+        return compiledTemplate.RunAsync(model);
     }
 
 }
