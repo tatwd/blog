@@ -14,7 +14,9 @@ var blogConfig = new BlogConfig
     BlogLink = "https://blog.tatwd.me",
     Links = new []
     {
-        new MyLink{Title = "tips", Url = "/spa/tips.html" },
+        // actual visit /spa/tips.html
+        // support that by vercel.json `cleanUrls` true
+        new MyLink{Title = "tips", Url = "/spa/tips" },
         new MyLink{Title = "tools", Url = "/spa/tools.html" },
         new MyLink{Title = "slides", Url = "https://slides.cloong.me" },
         new MyLink{Title = "github", Url = "https://github.com/tatwd" },
