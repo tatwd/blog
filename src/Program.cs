@@ -70,7 +70,7 @@ foreach (var (dirpath, defaultTemplateName) in markdownDirList)
     var dirname = dirInfo.Name;
     var postFiles = Directory.GetFiles(dirpath, "*.md", SearchOption.AllDirectories);
 
-    foreach (var path in postFiles.AsParallel())
+    foreach (var path in postFiles)
     {
         var currentDir = Path.GetDirectoryName(path);
         var outputDir = Path.Join(distDir, dirname);
