@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.SyndicationFeed;
 using Microsoft.SyndicationFeed.Atom;
 using MyBlog;
-using RazorEngineCore;
 
 // My blog global config, maybe should set in a config file.
 var blogConfig = new BlogConfig
@@ -49,39 +48,12 @@ Console.WriteLine("isDev: {0}", isDev);
 if (Directory.Exists(distDir))
     Directory.Delete(distDir, true);
 
-var razorEngine = new RazorEngine();
 var markdownRenderer = new MarkdownRenderer();
+var razorRenderer = new RazorRenderer(themeTemplateDir);
+
 
 // Generate post pages
 var globalPosts = new List<Post>(16);
-
-// var markdownDirList = new []
-// {
-//     postsDir, // default template is 'post'
-//     $"{cwd}/spa" //default template is 'spa'
-// };
-
-
-var compiledTemplateMap = new []
-    {
-        "index",
-        "post",
-        "tag",
-        "about",
-        "spa",
-        "404",
-    }
-    .Select(name => new
-        {
-            name,
-            content =  File.ReadAllText($"{themeTemplateDir}/{name}.cshtml")
-        })
-    .ToDictionary(
-        item => item.name,
-        item => razorEngine.Compile(item.content, option =>
-        {
-            option.AddAssemblyReference(typeof(Util));
-        }));
 
 
 
@@ -125,13 +97,13 @@ foreach (var path in postFiles.AsParallel())
         AbstractText = abstractText,
         CreateTime = frontMatter.CreateTime,
         Tags = frontMatter.Tags,
-        Pathname = RewriteIndexHtml(pathname)
+        Pathname = RewriteIndexHtml(pathname),
+        TemplateName = frontMatter.TemplateName ?? "post"
     };
     globalPosts.Add(post);
 
     // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
-    var compiledTemplate = compiledTemplateMap[frontMatter.TemplateName ?? "post"];
-    await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, new { Post = post, BlogConfig = blogConfig });
+    await SaveRenderedPostPageAsync(htmlFile, post, blogConfig);
     Console.WriteLine("Generated: {0}", pathname);
 }
 
@@ -141,11 +113,11 @@ var homeViewModel = new
     BlogConfig = blogConfig,
     Posts = globalPosts.OrderByDescending(p => p.CreateTime)
 };
-await SaveRenderedRazorPageAsync(compiledTemplateMap["index"], $"{distDir}/index.html", homeViewModel);
+await SaveRenderedRazorPageAsync($"{distDir}/index.html", "index", homeViewModel);
 Console.WriteLine("Generated: /index.html");
 
 // Generate 404.html
-await SaveRenderedRazorPageAsync(compiledTemplateMap["404"], $"{distDir}/404.html");
+await SaveRenderedRazorPageAsync($"{distDir}/404.html", "404");
 Console.WriteLine("Generated: /404.html");
 
 // Map all posts with same tag
@@ -174,7 +146,7 @@ foreach (var(tagName, postsWithSameTag) in mapTags)
         Posts = postsWithSameTag.OrderByDescending(p => p.CreateTime)
     };
     var newTagRoute = $"/tags/{Util.ReplaceWhiteSpaceByLodash(tagName)}/index.html";
-    await SaveRenderedRazorPageAsync(compiledTemplateMap["tag"], $"{distDir}{newTagRoute}", model);
+    await SaveRenderedRazorPageAsync($"{distDir}{newTagRoute}", "tag", model);
     Console.WriteLine("Generated: {0}", newTagRoute);
 }
 
@@ -198,6 +170,7 @@ Console.WriteLine("Generated: /atom.xml");
 
 
 // Generate all SPA
+// TODO: render with `posts`
 var spaDir = $"{cwd}/spa";
 var spaFiles = Directory.GetFiles(spaDir, "*", SearchOption.AllDirectories);
 foreach (var path in spaFiles.AsParallel())
@@ -229,13 +202,14 @@ foreach (var path in spaFiles.AsParallel())
         CreateTime = frontMatter.CreateTime,
         Tags = frontMatter.Tags,
         Pathname = RewriteIndexHtml(pathname),
+        TemplateName = frontMatter.TemplateName ?? "spa"
     };
 
-    var templateName = frontMatter.TemplateName ?? "spa";
-    var compiledTemplate = compiledTemplateMap[templateName];
-    await SaveRenderedRazorPageAsync(compiledTemplate, htmlFile, new { Post = post, BlogConfig = blogConfig });
+    await SaveRenderedPostPageAsync(htmlFile, post, blogConfig);
     Console.WriteLine("Generated: {0}", pathname);
 }
+
+
 
 string RewriteIndexHtml(string pathname)
 {
@@ -243,11 +217,18 @@ string RewriteIndexHtml(string pathname)
 }
 
 
-async Task SaveRenderedRazorPageAsync(IRazorEngineCompiledTemplate template, string distPath, object? model = null)
+async Task SaveRenderedPostPageAsync(string distPath, Post post, BlogConfig blogConfig)
 {
+    var html = await  razorRenderer.RenderPostPageAsync(post, blogConfig);
     Util.CreateDirIfNotExists(distPath);
+    await using var sw = File.CreateText(distPath);
+    await sw.WriteAsync(html);
+}
 
-    var html = template.Run(model);
+async Task SaveRenderedRazorPageAsync(string distPath, string templateName, object? model = null)
+{
+    var html = await  razorRenderer.RenderRazorPageAsync(templateName, model);
+    Util.CreateDirIfNotExists(distPath);
     await using var sw = File.CreateText(distPath);
     await sw.WriteAsync(html);
 }
