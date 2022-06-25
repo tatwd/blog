@@ -29,7 +29,7 @@ public class MarkdownRenderer
     }
 
 
-    public (string html, PostFrontMatter frontMatter) Render(string markdownText, string pathname)
+    public (string html, PostFrontMatter frontMatter, IList<string> localAssetLinks) Render(string markdownText, string pathname)
     {
         using var writer = new StringWriter();
 
@@ -40,9 +40,12 @@ public class MarkdownRenderer
         var frontMatter = GetPostFrontMatter(document)!;
 
         // var usePathname = frontMatter.Pathname ?? pathname;
+        var localAssetLinks = new List<string>(16);
 
         renderer.LinkRewriter = link =>
         {
+            if (Util.IsLocalUrl(link))
+                localAssetLinks.Add(link);
             // if (link.StartsWith("./"))
             //     return usePathname + link.Substring(1);
             return link;
@@ -52,7 +55,7 @@ public class MarkdownRenderer
         writer.Flush();
         var html = writer.ToString();
 
-        return (html, frontMatter);
+        return (html, frontMatter, localAssetLinks);
     }
 
 

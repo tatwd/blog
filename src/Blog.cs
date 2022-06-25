@@ -1,19 +1,20 @@
 namespace MyBlog;
 
 /// <summary>
-/// <example>
+/// Blog generator or self serve.
+/// <code>
 ///
 ///     var blog = new Blog(settings: new BlogConfig {
 ///         Title = "My Blog",
 ///         Author = "Foo",
-///         Description = "bababaabba",
+///         Description = "My Blog",
 ///     });
 ///     if (env.IsDev) {
 ///         blog.Serve(port: 8080); // start a http server
 ///     }
 ///     await blog.BuildAsync(outputDirectory: "./dist"); // build to ./dist folder
 ///
-/// </example>
+/// </code>
 /// </summary>
 public class Blog
 {
@@ -26,8 +27,8 @@ public class Blog
         if (string.IsNullOrEmpty(blogConfig.BlogDirectory))
             throw new ArgumentNullException(nameof(blogConfig.BlogDirectory));
 
-        blogConfig.PostsDirectory = blogConfig.PostsDirectory ?? $"{blogConfig.BlogDirectory}/posts";
-        blogConfig.ThemeDirectory = blogConfig.ThemeDirectory ?? $"{blogConfig.BlogDirectory}/theme";
+        blogConfig.PostsDirectory ??= $"{blogConfig.BlogDirectory}/posts";
+        blogConfig.ThemeDirectory ??= $"{blogConfig.BlogDirectory}/theme";
 
         _blogConfig = blogConfig;
         _markdownRenderer = new MarkdownRenderer();
@@ -66,7 +67,7 @@ public class Blog
         var contents = File.ReadAllText(path);
         var pathname = path.Replace(postDirectory, "").Replace(".md", "");
 
-        var (html, frontMatter) = _markdownRenderer.Render(contents, pathname);
+        var (html, frontMatter, localAssetLinks) = _markdownRenderer.Render(contents, pathname);
 
         return new Post
         {

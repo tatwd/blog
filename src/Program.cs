@@ -14,9 +14,9 @@ var blogConfig = new BlogConfig
     BlogLink = "https://blog.tatwd.me",
     Links = new []
     {
-        new MyLink{Title = "tips", Url = "/tips" },
-        new MyLink{Title = "tools", Url = "/tools" },
-        new MyLink{Title = "slides", Url = "https://slides.tatwd.me" },
+        new MyLink{Title = "tips", Url = "/spa/tips.html" },
+        new MyLink{Title = "tools", Url = "/spa/tools.html" },
+        new MyLink{Title = "slides", Url = "https://slides.cloong.me" },
         new MyLink{Title = "github", Url = "https://github.com/tatwd" },
         new MyLink{Title = "mail", Url = "mailto:tatwdo@gmail.com" },
         new MyLink{Title = "rss", Url = "/atom.xml" },
@@ -31,10 +31,10 @@ var cmdArgs = new ConfigurationBuilder()
     .AddCommandLine(args)
     .Build();
 
-var cwd = (cmdArgs["cwd"] ?? Directory.GetCurrentDirectory()).TrimEnd('/').TrimEnd('\\');
-var distDir = cmdArgs["dist"] ?? $"{cwd}/dist";
-var postsDir = cmdArgs["posts"] ?? $"{cwd}/posts";
-var themeDir = cmdArgs["theme"] ?? $"{cwd}/theme";
+var cwd = cmdArgs["cwd"] ?? Directory.GetCurrentDirectory();
+var distDir = cmdArgs["dist"] ??  Path.Join(cwd, "dist");
+var postsDir = cmdArgs["posts"] ?? Path.Join(cwd, "posts");
+var themeDir = cmdArgs["theme"] ?? Path.Join(cwd, "theme");
 var themeStyleDir = $"{themeDir}/styles";
 var themeTemplateDir = $"{themeDir}/templates";
 var isDev = !string.IsNullOrEmpty(cmdArgs["dev"]);
@@ -52,58 +52,81 @@ var markdownRenderer = new MarkdownRenderer();
 var razorRenderer = new RazorRenderer(themeTemplateDir);
 
 
+
 // Generate post pages
 var globalPosts = new List<Post>(16);
-
+var postAssetFiles = new Dictionary<string, string>(16);
 
 
 // All posts use a same razor template
-var postFiles = Directory.GetFiles(postsDir, "*", SearchOption.AllDirectories);
-foreach (var path in postFiles.AsParallel())
+var markdownDirList = new (string dirname, string defaultTemplateName)[]
 {
-    var outputDir = $"{distDir}/posts";
-    var newPath = path.Replace(postsDir, outputDir);
-    Util.CreateDirIfNotExists(newPath);
+    ("posts", "post"),
+    ("spa", "spa")
+};
+foreach (var (dirname, defaultTemplateName) in markdownDirList)
+{
+    var postDirname = Path.Join(cwd, dirname);
+    var postFiles = Directory.GetFiles(postDirname, "*.md", SearchOption.AllDirectories);
 
-    // Copy other files to dist, just like images etc.
-    if (!newPath.EndsWith(".md"))
+    foreach (var path in postFiles.AsParallel())
     {
-        File.Copy(path, newPath, true);
-        Console.WriteLine("Generated: {0} (copied)", newPath.Replace(distDir, ""));
-        continue;
+        var currentDir = Path.GetDirectoryName(path);
+        var outputDir = Path.Join(distDir, dirname);
+        var newPath = path.Replace(postDirname, outputDir);
+        Util.CreateDirIfNotExists(newPath);
+
+        var htmlFile = CreatePostUrl(newPath);
+        var pathname = htmlFile.Replace(distDir, "");
+
+        var mdText = File.ReadAllText(path);
+        var (html, frontMatter, localAssetLinks) = markdownRenderer.Render(mdText, pathname);
+
+        // Do not  publish draft item if env is not development.
+        if (!isDev && frontMatter.Draft)
+            continue;
+
+        var plainText = Util.Html2Text(html);
+        var timeToRead = Util.CalcTimeToRead(plainText);
+        var abstractText = Util.GenerateAbstractText(plainText);
+
+        var post = new Post
+        {
+            Title = frontMatter.Title,
+            HtmlContent = html,
+            TimeToRead = timeToRead,
+            AbstractText = abstractText,
+            CreateTime = frontMatter.CreateTime,
+            Tags = frontMatter.Tags,
+            Pathname = RewriteIndexHtml(pathname),
+            TemplateName = frontMatter.TemplateName ?? defaultTemplateName
+        };
+
+        if (post.TemplateName == "post")
+            globalPosts.Add(post);
+
+        // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
+        await SaveRenderedPostPageAsync(htmlFile, post, blogConfig);
+        Console.WriteLine("Generated: {0}", pathname);
+
+        foreach (var assetLink in localAssetLinks)
+        {
+            // TODO: need update if use custom `pathname`
+            var fullPath = Path.GetFullPath(Path.Join(currentDir, assetLink));
+            postAssetFiles[fullPath] = Path.Join(currentDir, assetLink).Replace(postDirname, outputDir);
+        }
     }
-
-    var htmlFile = newPath.Replace(".md", ".html");
-    var pathname = htmlFile.Replace(distDir, "");
-
-    var mdText = File.ReadAllText(path);
-    var (html, frontMatter) = markdownRenderer.Render(mdText, pathname);
-
-    // Do not  publish draft item if env is not development.
-    if (!isDev && frontMatter.Draft)
-        continue;
-
-    var plainText = Util.Html2Text(html);
-    var timeToRead = Util.CalcTimeToRead(plainText);
-    var abstractText = Util.GenerateAbstractText(plainText);
-
-    var post = new Post
-    {
-        Title = frontMatter.Title,
-        HtmlContent = html,
-        TimeToRead = timeToRead,
-        AbstractText = abstractText,
-        CreateTime = frontMatter.CreateTime,
-        Tags = frontMatter.Tags,
-        Pathname = RewriteIndexHtml(pathname),
-        TemplateName = frontMatter.TemplateName ?? "post"
-    };
-    globalPosts.Add(post);
-
-    // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
-    await SaveRenderedPostPageAsync(htmlFile, post, blogConfig);
-    Console.WriteLine("Generated: {0}", pathname);
 }
+
+// Copy assets
+foreach (var (fromPath, toPath) in postAssetFiles)
+{
+    // minify image here ?
+
+    File.Copy(fromPath, toPath, true);
+    Console.WriteLine("Generated: {0} (copied)", toPath);
+}
+
 
 // Generate index.html
 var homeViewModel = new
@@ -167,46 +190,12 @@ await WriteAtomFeedAsync(globalPosts, $"{distDir}/atom.xml");
 Console.WriteLine("Generated: /atom.xml");
 
 
-// Generate all SPA
-// TODO: render with `posts`
-var spaDir = $"{cwd}/spa";
-var spaFiles = Directory.GetFiles(spaDir, "*", SearchOption.AllDirectories);
-foreach (var path in spaFiles.AsParallel())
+
+string CreatePostUrl(string mdPath)
 {
-    var newPath = path.Replace(spaDir, distDir);
-    Util.CreateDirIfNotExists(newPath);
-
-    // Do not copy any files in templates dir
-    if (!path.EndsWith(".md"))
-    {
-        File.Copy(path, newPath, true);
-        Console.WriteLine("Generated: {0} (copied)", newPath.Replace(distDir, ""));
-        continue;
-    }
-
-    // var mdFileName = Path.GetFileName(newPath);
-    var htmlFile = newPath.Replace(".md", "/index.html");
-    var pathname = htmlFile.Replace(distDir, "");
-    var mdText = File.ReadAllText(path);
-    var (html, frontMatter) = markdownRenderer.Render(mdText, pathname);
-
-    var post = new Post
-    {
-        Title = frontMatter.Title,
-        HtmlContent = html,
-        // TimeToRead = timeToRead,
-        // AbstractText = abstractText,
-        CreateTime = frontMatter.CreateTime,
-        Tags = frontMatter.Tags,
-        Pathname = RewriteIndexHtml(pathname),
-        TemplateName = frontMatter.TemplateName ?? "spa"
-    };
-
-    await SaveRenderedPostPageAsync(htmlFile, post, blogConfig);
-    Console.WriteLine("Generated: {0}", pathname);
+    var filename = Path.GetFileNameWithoutExtension(mdPath);
+    return mdPath.Replace(".md", ".html");
 }
-
-
 
 string RewriteIndexHtml(string pathname)
 {
