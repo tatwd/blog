@@ -2,7 +2,6 @@
 title: hello test
 create_time: 2022-06-18
 template: spa
-draft: true
 ---
 
 ffabjvhajfva
