@@ -124,7 +124,7 @@ foreach (var (fromPath, toPath) in postAssetFiles)
     // minify image here ?
 
     Util.CreateDirIfNotExists(toPath);
-    File.Copy(fromPath, toPath, true);
+    File.Copy(fromPath, Path.GetFullPath(toPath), true);
     Console.WriteLine("Generated: {0} (copied)", toPath);
 }
 
