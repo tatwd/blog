@@ -74,7 +74,6 @@ foreach (var (dirname, defaultTemplateName) in markdownDirList)
         var currentDir = Path.GetDirectoryName(path);
         var outputDir = Path.Join(distDir, dirname);
         var newPath = path.Replace(postDirname, outputDir);
-        Util.CreateDirIfNotExists(newPath);
 
         var htmlFile = CreatePostUrl(newPath);
         var pathname = htmlFile.Replace(distDir, "");
