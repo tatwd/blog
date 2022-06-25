@@ -59,21 +59,22 @@ var postAssetFiles = new Dictionary<string, string>(16);
 
 
 // All posts use a same razor template
-var markdownDirList = new (string dirname, string defaultTemplateName)[]
+var markdownDirList = new (string dirpath, string defaultTemplateName)[]
 {
-    ("posts", "post"),
-    ("spa", "spa")
+    (postsDir, "post"),
+    ($"{cwd}/spa", "spa")
 };
-foreach (var (dirname, defaultTemplateName) in markdownDirList)
+foreach (var (dirpath, defaultTemplateName) in markdownDirList)
 {
-    var postDirname = Path.Join(cwd, dirname);
-    var postFiles = Directory.GetFiles(postDirname, "*.md", SearchOption.AllDirectories);
+    var dirInfo = new DirectoryInfo(dirpath);
+    var dirname = dirInfo.Name;
+    var postFiles = Directory.GetFiles(dirpath, "*.md", SearchOption.AllDirectories);
 
     foreach (var path in postFiles.AsParallel())
     {
         var currentDir = Path.GetDirectoryName(path);
         var outputDir = Path.Join(distDir, dirname);
-        var newPath = path.Replace(postDirname, outputDir);
+        var newPath = path.Replace(dirpath, outputDir);
 
         var htmlFile = CreatePostUrl(newPath);
         var pathname = htmlFile.Replace(distDir, "");
@@ -112,7 +113,7 @@ foreach (var (dirname, defaultTemplateName) in markdownDirList)
         {
             // TODO: need update if use custom `pathname`
             var fullPath = Path.GetFullPath(Path.Join(currentDir, assetLink));
-            postAssetFiles[fullPath] = Path.Join(currentDir, assetLink).Replace(postDirname, outputDir);
+            postAssetFiles[fullPath] = Path.Join(currentDir, assetLink).Replace(dirpath, outputDir);
         }
     }
 }
