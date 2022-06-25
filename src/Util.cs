@@ -100,4 +100,13 @@ public static class Util
 
     }
 
+    public static bool IsLocalUrl(string url)
+    {
+        return !url.StartsWith("http://") &&
+            !url.StartsWith("https://") &&
+            !url.StartsWith("ftp://") &&
+            !url.StartsWith("mailto:") &&
+            !url.StartsWith("//");
+    }
+
 }
