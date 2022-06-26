@@ -62,7 +62,7 @@ var postAssetFiles = new Dictionary<string, string>(16);
 var markdownDirList = new (string dirpath, string defaultTemplateName)[]
 {
     (postsDir, "post"),
-    ($"{cwd}/spa", "spa")
+    (Path.Join(cwd, "spa"), "spa")
 };
 foreach (var (dirpath, defaultTemplateName) in markdownDirList)
 {
