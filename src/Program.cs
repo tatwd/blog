@@ -206,7 +206,7 @@ string RewriteIndexHtml(string pathname)
 
 async Task SaveRenderedPostPageAsync(string distPath, Post post, BlogConfig blogConfig)
 {
-    var html = await  razorRenderer.RenderPostPageAsync(post, blogConfig);
+    var html = await razorRenderer.RenderPostPageAsync(post, blogConfig);
     Util.CreateDirIfNotExists(distPath);
     await using var sw = File.CreateText(distPath);
     await sw.WriteAsync(html);
@@ -214,7 +214,7 @@ async Task SaveRenderedPostPageAsync(string distPath, Post post, BlogConfig blog
 
 async Task SaveRenderedRazorPageAsync(string distPath, string templateName, object? model = null)
 {
-    var html = await  razorRenderer.RenderRazorPageAsync(templateName, model);
+    var html = await razorRenderer.RenderRazorPageAsync(templateName, model);
     Util.CreateDirIfNotExists(distPath);
     await using var sw = File.CreateText(distPath);
     await sw.WriteAsync(html);
