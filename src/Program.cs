@@ -113,6 +113,8 @@ foreach (var (dirpath, defaultTemplateName) in markdownDirList)
         {
             // TODO: need update if use custom `pathname`
             var fullPath = Path.GetFullPath(Path.Join(currentDir, assetLink));
+            if (postAssetFiles.ContainsKey(fullPath))
+                continue;
             postAssetFiles[fullPath] = Path.Join(currentDir, assetLink).Replace(dirpath, outputDir);
         }
     }
