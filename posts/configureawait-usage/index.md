@@ -4,6 +4,8 @@ tags:
   - dotnet
   - 技术笔记
 create_time: 2022-06-12
+duration: 3 min
+description: 阐述 ConfigureAwait 的原理及基本使用场景
 ---
 
 方法 `ConfigureAwait` 可用来控制 `await` 之后的代码块是否要在原上下文中进行执行，即是否要捕获原上下文。默认情况下，是会去捕获原上下文的，即相当与 `ConfigureAwait(true)`，其逻辑过程大致如下：

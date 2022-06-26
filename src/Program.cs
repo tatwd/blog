@@ -86,9 +86,18 @@ foreach (var (dirpath, defaultTemplateName) in markdownDirList)
         if (!isDev && frontMatter.Draft)
             continue;
 
-        var plainText = Util.Html2Text(html);
-        var timeToRead = Util.CalcTimeToRead(plainText);
-        var abstractText = Util.GenerateAbstractText(plainText);
+        var timeToRead = frontMatter.Duration;
+        var abstractText = frontMatter.Description;
+
+        if (string.IsNullOrEmpty(timeToRead) || string.IsNullOrEmpty(abstractText))
+        {
+            var plainText = Util.Html2Text(html);
+
+            if (string.IsNullOrEmpty(timeToRead))
+                timeToRead = Util.CalcTimeToRead(plainText);
+            if (string.IsNullOrEmpty(abstractText))
+                abstractText = Util.GenerateAbstractText(plainText);
+        }
 
         var post = new Post
         {
@@ -96,6 +105,7 @@ foreach (var (dirpath, defaultTemplateName) in markdownDirList)
             HtmlContent = html,
             TimeToRead = timeToRead,
             AbstractText = abstractText,
+            Lang = frontMatter.Lang,
             CreateTime = frontMatter.CreateTime,
             Tags = frontMatter.Tags,
             Pathname = RewriteIndexHtml(pathname),
@@ -121,10 +131,9 @@ foreach (var (dirpath, defaultTemplateName) in markdownDirList)
 }
 
 // Copy assets
+// minify image here ?
 foreach (var (fromPath, toPath) in postAssetFiles)
 {
-    // minify image here ?
-
     Util.CreateDirIfNotExists(toPath);
     File.Copy(fromPath, toPath, true);
     Console.WriteLine("Generated: {0} (copied)", toPath);

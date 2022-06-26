@@ -1,7 +1,7 @@
 @using MyBlog;
 
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="@Model.Post.Lang">
 
 <head>
   <meta charset="UTF-8" />
@@ -50,7 +50,7 @@
     <small class="text-light">
       <span>@Model.Post.CreateTime.ToString("MMMM d, yyyy")</span>
       •
-      <span>@Util.FormatReadingTime(Model.Post.TimeToRead)</span>
+      <span>@Model.Post.TimeToRead</span>
       @foreach (var tag in Model.Post.Tags)
       {
         <a class="hover-underline" href="/tags/@Util.ReplaceWhiteSpaceByLodash(tag)/">#@tag</a>

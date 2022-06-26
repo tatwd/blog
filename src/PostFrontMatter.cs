@@ -18,6 +18,17 @@ public class PostFrontMatter
 
     [YamlMember(Alias = "draft")]
     public bool Draft { get; set; }
+
+    [YamlMember(Alias = "duration")]
+    public string? Duration { get; set; }
+
+    [YamlMember(Alias = "description")]
+    public string? Description { get; set; }
+
+    [YamlMember(Alias = "lang")]
+    public string Lang { get; set; } = "zh-CN";
+
     // [YamlMember(Alias = "pathname")]
     // public string? Pathname { get; set; }
+
 }
