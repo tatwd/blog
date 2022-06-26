@@ -3,6 +3,9 @@ title: "Deploy to Vercel By GitHub Actions"
 tags:
   - 技术笔记
 create_time: 2022-02-23 23:45:00
+lang: en
+duration: 1 min
+description: How to deploy a static website to Vercel via GitHub Actions?
 ---
 
 ## Prerequisites

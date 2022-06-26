@@ -1,5 +1,3 @@
-@using MyBlog;
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -61,7 +59,7 @@
             <div class="text-light">
               <span>@item.CreateTime.ToString("MMM d, yyyy")</span>
               •
-              <span>@Util.FormatReadingTime(item.TimeToRead)</span>
+              <span>@item.TimeToRead</span>
             </div>
           </li>
         }

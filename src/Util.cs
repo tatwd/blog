@@ -38,11 +38,11 @@ public static class Util
         // }
     }
 
-    public static int CalcTimeToRead(string content)
+    public static string CalcTimeToRead(string content)
     {
         var words = CountWords(content);
         var (minutes, seconds) = Math.DivRem(words, 200);
-        return seconds > 0 ? minutes + 1 : minutes;
+        return FormatReadingTime(seconds > 0 ? minutes + 1 : minutes);
     }
 
     private static int CountWords(string content)
