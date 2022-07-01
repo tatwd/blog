@@ -69,11 +69,11 @@ foreach (var (dirpath, defaultTemplateName) in markdownDirList)
     var dirInfo = new DirectoryInfo(dirpath);
     var dirname = dirInfo.Name;
     var postFiles = Directory.GetFiles(dirpath, "*.md", SearchOption.AllDirectories);
+    var outputDir = Path.Join(distDir, dirname);
 
     foreach (var path in postFiles.AsParallel())
     {
         var currentDir = Path.GetDirectoryName(path);
-        var outputDir = Path.Join(distDir, dirname);
         var newPath = path.Replace(dirpath, outputDir);
 
         var htmlFile = CreatePostUrl(newPath);
