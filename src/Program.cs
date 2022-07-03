@@ -35,7 +35,6 @@ var cwd = cmdArgs["cwd"] ?? Directory.GetCurrentDirectory();
 var distDir = cmdArgs["dist"] ??  Path.Join(cwd, "dist");
 var postsDir = cmdArgs["posts"] ?? Path.Join(cwd, "posts");
 var themeDir = cmdArgs["theme"] ?? Path.Join(cwd, "theme");
-var themeStyleDir = $"{themeDir}/styles";
 var themeTemplateDir = $"{themeDir}/templates";
 var isDev = !string.IsNullOrEmpty(cmdArgs["dev"]);
 
