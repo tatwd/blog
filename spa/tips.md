@@ -5,6 +5,16 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
+## Escaped JavaScript string in Razor
+> 2022-07-05
+
+```razor
+const str = '@HttpUtility.JavaScriptStringEncode(Model.StrVal)'
+```
+
+参考：[Javascript, Razor and Escape characters. Like apostrophe](https://stackoverflow.com/questions/5225796/javascript-razor-and-escape-characters-like-apostrophe)
+
+
 ## SQL 中按指定分割符连接字符串表达式
 > 2022-06-13
 
