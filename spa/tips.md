@@ -5,6 +5,24 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
+## MSSQL 查看表字段信息
+> 2022-07-15
+
+```sql
+select a.name '字段', 
+b.name '字段类型', 
+a.max_length '最大长度(字节)',
+case a.is_nullable when 0 then '否' else '是' end '是否为空',
+case a.is_identity when 0 then '否' else '是' end '是否为主键',
+c.value '说明'
+from sys.columns a
+inner join sys.types b on a.system_type_id=b.system_type_id
+left join sys.extended_properties c on c.major_id=a.object_id and c.minor_id=a.column_id
+where a.object_id=object_id('[database_name].[sechema_name].[table_name]')  
+and b.name<>'sysname' 
+order by a.column_id
+```
+
 ## Escaped JavaScript string in Razor
 > 2022-07-05
 
