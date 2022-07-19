@@ -5,6 +5,24 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
+## 使用 InstallUtil 安装和卸载 window service
+> 2022-07-19
+
+安装：
+```ps1
+cd /d %~dp0
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe 程序.exe
+pause
+```
+
+卸载：
+```ps1
+cd /d %~dp0
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /uninstall 程序.exe
+pause
+```
+需要以管理员身份运行才行。
+
 ## MSSQL 查看表字段信息
 > 2022-07-15
 
