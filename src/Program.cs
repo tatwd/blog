@@ -11,7 +11,7 @@ var blogConfig = new BlogConfig
     Author = "_king",
     Description = "万古长空，一朝风月。",
     Email = "tatwdo@gmail.com",
-    BlogLink = "https://blog.tatwd.me",
+    BlogLink = "https://blog.cloong.me",
     Links = new []
     {
         new MyLink{Title = "tips", Url = "/spa/tips.html" },
@@ -210,7 +210,8 @@ string CreatePostUrl(string mdPath)
 
 string RewriteIndexHtml(string pathname)
 {
-    return pathname.EndsWith("/index.html") ? pathname.Replace("/index.html", "") : pathname;
+    return (pathname.EndsWith("/index.html") ? pathname.Replace("/index.html", "") : pathname)
+        .Replace("\\", "/"); // fix window sperator char -> `/`
 }
 
 
