@@ -5,7 +5,7 @@ using Microsoft.SyndicationFeed.Atom;
 using MyBlog;
 
 // My blog global config, maybe should set in a config file.
-var blogConfig = new BlogConfig
+var globalBlogConfig = new BlogConfig
 {
     Title = "_king's Notes",
     Author = "_king",
@@ -31,18 +31,19 @@ var cmdArgs = new ConfigurationBuilder()
     .AddCommandLine(args)
     .Build();
 
-var cwd = cmdArgs["cwd"] ?? Directory.GetCurrentDirectory();
+var cwd = new DirectoryInfo(cmdArgs["cwd"] ?? Directory.GetCurrentDirectory()).FullName;
 var distDir = cmdArgs["dist"] ??  Path.Join(cwd, "dist");
 var postsDir = cmdArgs["posts"] ?? Path.Join(cwd, "posts");
 var themeDir = cmdArgs["theme"] ?? Path.Join(cwd, "theme");
-var themeTemplateDir = $"{themeDir}/templates";
-var isDev = !string.IsNullOrEmpty(cmdArgs["dev"]);
+var themeTemplateDir = Path.Join(themeDir, "templates");
+var isDev = !string.IsNullOrEmpty(cmdArgs["dev"]) || args.Contains("--dev");
+
 
 Console.WriteLine("cwd: {0}", cwd);
 Console.WriteLine("distDir: {0}", distDir);
 Console.WriteLine("postDir: {0}", postsDir);
 Console.WriteLine("themeDir: {0}", themeDir);
-Console.WriteLine("isDev: {0}", isDev);
+Console.WriteLine("isDev: {0}", isDev.ToString());
 
 if (Directory.Exists(distDir))
     Directory.Delete(distDir, true);
@@ -63,17 +64,18 @@ var markdownDirList = new (string dirpath, string defaultTemplateName)[]
     (postsDir, "post"),
     (Path.Join(cwd, "spa"), "spa")
 };
-foreach (var (dirpath, defaultTemplateName) in markdownDirList)
+foreach (var (dirPath, defaultTemplateName) in markdownDirList)
 {
-    var dirInfo = new DirectoryInfo(dirpath);
+    var dirInfo = new DirectoryInfo(dirPath);
     var dirname = dirInfo.Name;
-    var postFiles = Directory.GetFiles(dirpath, "*.md", SearchOption.AllDirectories);
-    var outputDir = Path.Join(distDir, dirname);
+    var postFiles = dirInfo.GetFiles("*.md", SearchOption.AllDirectories);
+    var outputDir = Path.Join(distDir, dirname).Replace(cwd, ""); // remove `cwd` prefix
 
-    foreach (var path in postFiles.AsParallel())
+    foreach (var fileInfo in postFiles.AsParallel())
     {
-        var currentDir = Path.GetDirectoryName(path);
-        var newPath = path.Replace(dirpath, outputDir);
+        var path = fileInfo.FullName;
+        var currentDir = fileInfo.Directory!.FullName;
+        var newPath = path.Replace(dirPath, outputDir);
 
         var htmlFile = CreatePostUrl(newPath);
         var pathname = htmlFile.Replace(distDir, "");
@@ -115,7 +117,7 @@ foreach (var (dirpath, defaultTemplateName) in markdownDirList)
             globalPosts.Add(post);
 
         // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
-        await SaveRenderedPostPageAsync(htmlFile, post, blogConfig);
+        await SaveRenderedPostPageAsync(htmlFile, post, globalBlogConfig);
         Console.WriteLine("Generated: {0}", pathname);
 
         foreach (var assetLink in localAssetLinks)
@@ -124,7 +126,7 @@ foreach (var (dirpath, defaultTemplateName) in markdownDirList)
             var fullPath = Path.GetFullPath(Path.Join(currentDir, assetLink));
             if (postAssetFiles.ContainsKey(fullPath))
                 continue;
-            postAssetFiles[fullPath] = Path.Join(currentDir, assetLink).Replace(dirpath, outputDir);
+            postAssetFiles[fullPath] = Path.Join(currentDir, assetLink).Replace(dirPath, outputDir);
         }
     }
 }
@@ -142,7 +144,7 @@ foreach (var (fromPath, toPath) in postAssetFiles)
 // Generate index.html
 var homeViewModel = new
 {
-    BlogConfig = blogConfig,
+    BlogConfig = globalBlogConfig,
     Posts = globalPosts.OrderByDescending(p => p.CreateTime)
 };
 await SaveRenderedRazorPageAsync($"{distDir}/index.html", "index", homeViewModel);
@@ -152,30 +154,22 @@ Console.WriteLine("Generated: /index.html");
 await SaveRenderedRazorPageAsync($"{distDir}/404.html", "404");
 Console.WriteLine("Generated: /404.html");
 
-// Map all posts with same tag
-var mapTags = new Dictionary<string, IList<Post>>();
-foreach (var post in globalPosts)
-{
-    if (!post.Tags.Any())
-        continue;
-
-    foreach (var tagName in post.Tags)
-    {
-        if (!mapTags.ContainsKey(tagName))
-            mapTags[tagName] = new List<Post> { post };
-        else
-            mapTags[tagName].Add(post);
-    }
-}
+// Group all posts with same tag
+var groupPostsWithSameTag = globalPosts
+    .SelectMany(post => post.Tags.Select(tag => new { tag, post }))
+    .ToLookup(x => x.tag, x => x.post);
 
 // Generate tag pages
-foreach (var(tagName, postsWithSameTag) in mapTags)
+foreach (var g in groupPostsWithSameTag)
 {
+    var tagName = g.Key;
+    var postsWithSameTag = g.OrderByDescending(p => p.CreateTime);
+
     var model = new
     {
-        BlogConfig = blogConfig,
+        BlogConfig = globalBlogConfig,
         TagName = tagName,
-        Posts = postsWithSameTag.OrderByDescending(p => p.CreateTime)
+        Posts = postsWithSameTag
     };
     var newTagRoute = $"/tags/{Util.ReplaceWhiteSpaceByLodash(tagName)}/index.html";
     await SaveRenderedRazorPageAsync($"{distDir}{newTagRoute}", "tag", model);
@@ -204,14 +198,14 @@ Console.WriteLine("Generated: /atom.xml");
 
 string CreatePostUrl(string mdPath)
 {
-    var filename = Path.GetFileNameWithoutExtension(mdPath);
+    // var filename = Path.GetFileNameWithoutExtension(mdPath);
     return mdPath.Replace(".md", ".html");
 }
 
 string RewriteIndexHtml(string pathname)
 {
     return (pathname.EndsWith("/index.html") ? pathname.Replace("/index.html", "") : pathname)
-        .Replace("\\", "/"); // fix window sperator char -> `/`
+        .Replace("\\", "/"); // fix window separator char -> `/`
 }
 
 
@@ -239,15 +233,15 @@ async Task WriteAtomFeedAsync(IEnumerable<Post> posts, string distPath)
     await using var sw = File.CreateText(distPath);
     await using var xmlWriter = XmlWriter.Create(sw, new XmlWriterSettings { Async = true, Indent = true });
     var writer = new AtomFeedWriter(xmlWriter);
-    await writer.WriteTitle(blogConfig.Title);
+    await writer.WriteTitle(globalBlogConfig.Title);
     // await writer.WriteDescription(blogConfig.Description);
-    await writer.Write(new SyndicationLink(new Uri(blogConfig.BlogLink)));
-    await writer.Write(new SyndicationPerson(blogConfig.Author, blogConfig.Email));
+    await writer.Write(new SyndicationLink(new Uri(globalBlogConfig.BlogLink)));
+    await writer.Write(new SyndicationPerson(globalBlogConfig.Author, globalBlogConfig.Email));
     // await writer.WritePubDate(DateTimeOffset.UtcNow);
 
     foreach (var post in posts.OrderByDescending(p => p.CreateTime))
     {
-        var postLink = $"{blogConfig.BlogLink}{post.Pathname}";
+        var postLink = $"{globalBlogConfig.BlogLink}{post.Pathname}";
         var item = new AtomEntry
         {
             Id = postLink,
@@ -258,7 +252,7 @@ async Task WriteAtomFeedAsync(IEnumerable<Post> posts, string distPath)
             Summary = post.AbstractText
         };
 
-        item.AddContributor(new SyndicationPerson(blogConfig.Author, blogConfig.Email, AtomContributorTypes.Author));
+        item.AddContributor(new SyndicationPerson(globalBlogConfig.Author, globalBlogConfig.Email, AtomContributorTypes.Author));
         item.AddLink(new SyndicationLink(new Uri(postLink)));
 
         // foreach (var tag in post.FrontMatter.Tags)
