@@ -27,8 +27,8 @@ pause
 > 2022-07-15
 
 ```sql
-select a.name '字段', 
-b.name '字段类型', 
+select a.name '字段',
+b.name '字段类型',
 a.max_length '最大长度(字节)',
 case a.is_nullable when 0 then '否' else '是' end '是否为空',
 case a.is_identity when 0 then '否' else '是' end '是否为主键',
@@ -36,8 +36,8 @@ c.value '说明'
 from sys.columns a
 inner join sys.types b on a.system_type_id=b.system_type_id
 left join sys.extended_properties c on c.major_id=a.object_id and c.minor_id=a.column_id
-where a.object_id=object_id('[database_name].[sechema_name].[table_name]')  
-and b.name<>'sysname' 
+where a.object_id=object_id('[database_name].[sechema_name].[table_name]')
+and b.name<>'sysname'
 order by a.column_id
 ```
 
@@ -477,9 +477,17 @@ bin\mysqld --install MySQL --defaults-file=D:\devtools\mysql-5.7.31-winx64\my.cn
 ## WinDbg的配置
 
 调试前需对 Symbol File Path (以下简称 SFP) 进行设置。例如：
+
 ```txt
 c:\mysymbols;srv*c:\cachesymbols*https://msdl.microsoft.com/download/symbols
 ```
+
+或者
+
+```txt
+c:\mysymbols;cache*c:\cachesymbols;srv*https://msdl.microsoft.com/download/symbols
+```
+
 > [Windows 调试器的符号路径](https://docs.microsoft.com/zh-cn/windows-hardware/drivers/debugger/symbol-path)
 
 然后，在 windbg 中执行以下命令加载符号（注意保持网络通畅）
