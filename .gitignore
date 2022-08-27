@@ -3,7 +3,6 @@ public/
 bin/
 obj/
 .vs/
-.vscode/
 out/
 output/
 .vercel
