@@ -284,17 +284,14 @@ int main(void)
 
 一个线程的典型生命周期（lifecycle）：
 
-```txt
-          NEW
-           |
-           V
-   +---> READY ---+
-   |       ^      |
-   |       |      V
-WAITING <--+-- RUNNING
-                  |
-   :              V
-SUSPENDED       DEAD
+```mermaid
+graph TD;
+    NEW-->READY;
+    READY-->RUNNING;
+    RUNNING-->WAITING;
+    RUNNING-->DEAD;
+    WAITING-->READY;
+    WAITING-.-SUSPENDED;
 ```
 
 ## 协程

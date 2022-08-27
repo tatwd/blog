@@ -99,3 +99,7 @@ article code:not([class*="language-"]) {
   word-wrap: break-word;
   text-transform: none;
 }
+
+article .mermaid {
+  text-align: center;
+}
