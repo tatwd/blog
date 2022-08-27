@@ -14,9 +14,9 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
     private readonly CodeBlockRenderer _codeBlockRenderer;
     private readonly HtmlHighlighter _htmlHighlighter;
 
-    public MyPrismCodeBlockRenderer()
+    public MyPrismCodeBlockRenderer(CodeBlockRenderer codeBlockRenderer)
     {
-        _codeBlockRenderer = new CodeBlockRenderer();
+        _codeBlockRenderer = codeBlockRenderer;
         _htmlHighlighter = new HtmlHighlighter();
     }
 
@@ -35,6 +35,12 @@ public class MyPrismCodeBlockRenderer : HtmlObjectRenderer<CodeBlock>
         if (string.IsNullOrWhiteSpace(languageCode))
         {
             languageCode = "plaintext";
+        }
+
+        if (_codeBlockRenderer.BlocksAsDiv.Contains(languageCode))
+        {
+            _codeBlockRenderer.Write(renderer, node);
+            return;
         }
 
         var attributes = new HtmlAttributes();
@@ -88,6 +94,10 @@ public class MyPrismExtension : IMarkdownExtension
             throw new ArgumentNullException(nameof(renderer));
 
         if (renderer is TextRendererBase<HtmlRenderer> htmlRenderer)
-            htmlRenderer.ObjectRenderers.ReplaceOrAdd<CodeBlockRenderer>(new MyPrismCodeBlockRenderer());
+        {
+            var defaultCodeRenderer = htmlRenderer.ObjectRenderers.FindExact<CodeBlockRenderer>()!;
+            var myPrismCodeRenderer = new MyPrismCodeBlockRenderer(defaultCodeRenderer);
+            htmlRenderer.ObjectRenderers.ReplaceOrAdd<CodeBlockRenderer>(myPrismCodeRenderer);
+        }
     }
 }
