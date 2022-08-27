@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 :root {
   --code-bgcolor: #f6f8fa;
   --code-fonts: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
@@ -16,6 +18,11 @@ article img {
   height: auto;
   display: block;
   margin: 2em auto;
+}
+
+article figure figcaption {
+  text-align: center;
+  font-weight: bold;
 }
 
 article a {
