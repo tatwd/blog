@@ -69,7 +69,7 @@ foreach (var (dirPath, defaultTemplateName) in markdownDirList)
     var dirInfo = new DirectoryInfo(dirPath);
     var dirname = dirInfo.Name;
     var postFiles = dirInfo.GetFiles("*.md", SearchOption.AllDirectories);
-    var outputDir = Path.Join(distDir, dirname).Replace(cwd, ""); // remove `cwd` prefix
+    var outputDir = Path.Join(distDir, dirname);
 
     foreach (var fileInfo in postFiles.AsParallel())
     {
@@ -78,7 +78,7 @@ foreach (var (dirPath, defaultTemplateName) in markdownDirList)
         var newPath = path.Replace(dirPath, outputDir);
 
         var htmlFile = CreatePostUrl(newPath);
-        var pathname = htmlFile.Replace(distDir, "");
+        var pathname = htmlFile.Replace(distDir, "").Replace("\\", "/");
 
         var mdText = File.ReadAllText(path);
         var (html, frontMatter, localAssetLinks) = markdownRenderer.Render(mdText, pathname);
@@ -126,7 +126,7 @@ foreach (var (dirPath, defaultTemplateName) in markdownDirList)
             var fullPath = Path.GetFullPath(Path.Join(currentDir, assetLink));
             if (postAssetFiles.ContainsKey(fullPath))
                 continue;
-            postAssetFiles[fullPath] = Path.Join(currentDir, assetLink).Replace(dirPath, outputDir);
+            postAssetFiles[fullPath] = Path.GetFullPath(fullPath.Replace(dirPath, outputDir));
         }
     }
 }
@@ -137,7 +137,7 @@ foreach (var (fromPath, toPath) in postAssetFiles)
 {
     Util.CreateDirIfNotExists(toPath);
     File.Copy(fromPath, toPath, true);
-    Console.WriteLine("Generated: {0} (copied)", toPath);
+    Console.WriteLine("Generated: {0} (copied)", toPath.Replace(distDir, "").Replace("\\", "/"));
 }
 
 
@@ -187,7 +187,7 @@ foreach (var path in otherThemeFiles.AsParallel())
     var newPath = path.Replace(themeDir, distDir);
     Util.CreateDirIfNotExists(newPath);
     File.Copy(path, newPath, overwrite : true);
-    Console.WriteLine("Generated: {0} (copied)", newPath.Replace(distDir, ""));
+    Console.WriteLine("Generated: {0} (copied)", newPath.Replace(distDir, "").Replace("\\", "/"));
 }
 
 // Generate atom.xml fro all posts
