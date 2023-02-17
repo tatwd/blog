@@ -5,6 +5,16 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
+## Git 实用技巧
+> 2022-03-17
+
+回退上一次本地提交：
+```bash
+git reset HARD~
+```
+
+
+
 ## 使用 InstallUtil 安装和卸载 window service
 > 2022-07-19
 
