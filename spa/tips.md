@@ -5,6 +5,15 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
+## windows 下 curl 跳过证书吊销检查
+> 2022-03-20
+
+以处理代理 https 抓包时，curl 出现的错误 `curl: (35) schannel: next InitializeSecurityContext failed: Unknown error (0x80092012) - 吊销功无法检查证书是否吊销。`
+
+```ps1
+curl --proxy 127.0.0.1:8080 --ssl-no-revoke https://httpbin.org/get
+```
+
 ## Git 实用技巧
 > 2022-03-17
 
