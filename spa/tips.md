@@ -13,6 +13,7 @@ create_time: 2022-03-22
 ```ps1
 curl --proxy 127.0.0.1:8080 --ssl-no-revoke https://httpbin.org/get
 ```
+或者使用 `--insecure`
 
 ## Git 实用技巧
 > 2022-03-17
