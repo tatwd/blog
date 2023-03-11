@@ -1,7 +1,4 @@
-﻿using System.Xml;
-using Microsoft.Extensions.Configuration;
-using Microsoft.SyndicationFeed;
-using Microsoft.SyndicationFeed.Atom;
+﻿using Microsoft.Extensions.Configuration;
 using MyBlog;
 
 // My blog global config, maybe should set in a config file.
@@ -230,37 +227,38 @@ async Task WriteAtomFeedAsync(IEnumerable<Post> posts, string distPath)
 {
     Util.CreateDirIfNotExists(distPath);
 
-    await using var sw = File.CreateText(distPath);
-    await using var xmlWriter = XmlWriter.Create(sw, new XmlWriterSettings { Async = true, Indent = true });
-    var writer = new AtomFeedWriter(xmlWriter);
-    await writer.WriteTitle(globalBlogConfig.Title);
-    // await writer.WriteDescription(blogConfig.Description);
-    await writer.Write(new SyndicationLink(new Uri(globalBlogConfig.BlogLink)));
-    await writer.Write(new SyndicationPerson(globalBlogConfig.Author, globalBlogConfig.Email));
-    // await writer.WritePubDate(DateTimeOffset.UtcNow);
+    var feed = new FeedSharp.Feed(new FeedSharp.FeedOptions(globalBlogConfig.BlogLink, globalBlogConfig.Title)
+    {
+        Description = globalBlogConfig.Description,
+        Link = globalBlogConfig.BlogLink,
+        Feed = $"{globalBlogConfig.BlogLink}/atom.xml",
+        Author = new FeedSharp.Author
+        {
+            Name = globalBlogConfig.Author,
+            Email = globalBlogConfig.Email
+        },
+        Updated = DateTime.Now,
+        Copyright = $"Copyright {DateTime.Now.Year} {globalBlogConfig.BlogLink}"
+    });
 
     foreach (var post in posts.OrderByDescending(p => p.CreateTime))
     {
         var postLink = $"{globalBlogConfig.BlogLink}{post.Pathname}";
-        var item = new AtomEntry
+        var categories = post.Tags.Select(tag => new FeedSharp.Category { Name = tag }).ToArray();
+
+        var item = new FeedSharp.Item(post.Title, postLink, post.CreateTime)
         {
-            Id = postLink,
-            Title = post.Title,
-            Published = post.CreateTime,
-            LastUpdated = post.CreateTime,
-            // ContentType = "html",
-            Summary = post.AbstractText
+            Description = post.AbstractText,
+            Category = categories,
+            Published = post.CreateTime
         };
 
-        item.AddContributor(new SyndicationPerson(globalBlogConfig.Author, globalBlogConfig.Email, AtomContributorTypes.Author));
-        item.AddLink(new SyndicationLink(new Uri(postLink)));
-
-        // foreach (var tag in post.FrontMatter.Tags)
-        //     item.AddCategory(new SyndicationCategory(tag));
-
-        await writer.Write(item);
+        feed.AddItem(item);
     }
 
-    xmlWriter.Flush();
+    var xml = feed.ToAtom1();
+
+    await using var sw = File.CreateText(distPath);
+    await sw.WriteAsync(xml);
     await sw.FlushAsync();
 }
