@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FeedSharp" Version="0.1.2" />
+    <PackageReference Include="FeedSharp" Version="0.1.3" />
     <PackageReference Include="Markdig" Version="0.30.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
     <PackageReference Include="PrismSharp.Highlighting.HTML" Version="0.1.4" />
