@@ -102,4 +102,5 @@ article code:not([class*="language-"]) {
 
 article .mermaid {
   text-align: center;
+  background-color: #fff;
 }
