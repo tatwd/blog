@@ -1888,8 +1888,8 @@ private struct <M>d__0 : IAsyncStateMachine
 ```
 We now have one more: <>7__wrap1. Why? Because we computed the value of DateTime.Now.Second, and only after computing it, we had to await something, and the value of the first expression needs to be preserved in order to add it to the result of the second. The compiler thus needs to ensure that the temporary result from that first expression is available to add to the result of the await, which means it needs to spill the result of the expression into a temporary, which it does with this <>7__wrap1 field. If you ever find yourself hyper-optimizing async method implementations to drive down the amount of memory allocated, you can look for such fields and see if small tweaks to the source could avoid the need for spilling and thus avoid the need for such temporaries.
 
-## Wrap Up
+## 总结
 
-I hope this post has helped to illuminate exactly what’s going on under the covers when you use async/await, but thankfully you generally don’t need to know or care. There are many moving pieces here, all coming together to create an efficient solution to writing scalable asynchronous code without having to deal with callback soup. And yet at the end of the day, those pieces are actually relatively simple: a universal representation for any asynchronous operation, a language and compiler capable of rewriting normal control flow into a state machine implementation of coroutines, and patterns that bind them all together. Everything else is optimization gravy.
+I hope this post has helped to illuminate exactly what’s going on under the covers when you use async/await, but thankfully you generally don’t need to know or care. There are many moving pieces here, all coming together to create an efficient solution to writing scalable asynchronous code without having to deal with callback soup. And yet at the end of the day, those pieces are actually relatively simple: a universal representation for any asynchronous operation, a language and compiler capable of rewriting normal control flow into a state machine implementation of coroutines, and patterns that bind them all together. 其他一切都是优化的调味品。
 
-Happy coding!
+编码快乐！
