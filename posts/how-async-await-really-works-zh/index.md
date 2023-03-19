@@ -1041,6 +1041,7 @@ This struct is the state machine for the method, containing not only all of the 
 
 After initializing the state machine, we see a call to AsyncTaskMethodBuilder.Create(). While we’re currently focused on Tasks, the C# language and compiler allow for arbitrary types (“task-like” types) to be returned from async methods, e.g. I can write a method public async MyTask CopyStreamToStreamAsync, and it would compile just fine as long as we augment the MyTask we defined earlier in an appropriate way. That appropriateness includes declaring an associated “builder” type and associating it with the type via the AsyncMethodBuilder attribute:
 
+```csharp
 [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
 public class MyTask
 {
@@ -1068,16 +1069,19 @@ public struct MyTaskMethodBuilder
 
     public MyTask Task { get { ... } }
 }
+```
 In this context, such a “builder” is something that knows how to create an instance of that type (the Task property), complete it either successfully and with a result if appropriate (SetResult) or with an exception (SetException), and handle hooking up continuations to awaited things that haven’t yet completed (AwaitOnCompleted/AwaitUnsafeOnCompleted). In the case of System.Threading.Tasks.Task, it is by default associated with the AsyncTaskMethodBuilder. Normally that association is provided via an [AsyncMethodBuilder(...)] attribute applied to the type, but Task is known specially to C# and so isn’t actually adorned with that attribute. As such, the compiler has reached for the builder to use for this async method, and is constructing an instance of it using the Create method that’s part of the pattern. Note that as with the state machine, AsyncTaskMethodBuilder is also a struct, so there’s no allocation here, either.
 
 The state machine is then populated with the arguments to this entry point method. Those parameters need to be available to the body of the method that’s been moved into MoveNext, and as such these arguments need to be stored in the state machine so that they can be referenced by the code on the subsequent call to MoveNext. The state machine is also initialized to be in the initial -1 state. If MoveNext is called and the state is -1, we’ll end up starting logically at the beginning of the method.
 
 Now the most unassuming but most consequential line: a call to the builder’s Start method. This is another part of the pattern that must be exposed on a type used in the return position of an async method, and it’s used to perform the initial MoveNext on the state machine. The builder’s Start method is effectively just this:
 
+```csharp
 public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
 {
     stateMachine.MoveNext();
 }
+```
 such that calling stateMachine.<>t__builder.Start(ref stateMachine); is really just calling stateMachine.MoveNext(). In which case, why doesn’t the compiler just emit that directly? Why have Start at all? The answer is that there’s a tad bit more to Start than I let on. But for that, we need to take a brief detour into understanding ExecutionContext.
 
 ### ExecutionContext
@@ -1090,6 +1094,7 @@ But, what about asynchrony? If we make an asynchronous method call and logic ins
 
 Enter ExecutionContext. The ExecutionContext type is the vehicle by which ambient data flows from async operation to async operation. It lives in a [ThreadStatic], but then when some asynchronous operation is initiated, it’s “captured” (a fancy way of saying “read a copy from that thread static”), stored, and then when the continuation of that asynchronous operation is run, the ExecutionContext is first restored to live in the [ThreadStatic] on the thread which is about to run the operation. ExecutionContext is the mechanism by which AsyncLocal<T> is implemented (in fact, in .NET Core, ExecutionContext is entirely about AsyncLocal<T>, nothing more), such that if you store a value into an AsyncLocal<T>, and then for example queue a work item to run on the ThreadPool, that value will be visible in that AsyncLocal<T> inside of that work item running on the pool:
 
+```csharp
 var number = new AsyncLocal<int>();
 
 number.Value = 42;
@@ -1097,8 +1102,10 @@ ThreadPool.QueueUserWorkItem(_ => Console.WriteLine(number.Value));
 number.Value = 0;
 
 Console.ReadLine();
+```
 That will print 42 every time this is run. It doesn’t matter that the moment after we queue the delegate we reset the value of the AsyncLocal<int> back to 0, because the ExecutionContext was captured as part of the QueueUserWorkItem call, and that capture included the state of the AsyncLocal<int> at that exact moment. We can see this in more detail by implementing our own simple thread pool:
 
+```csharp
 using System.Collections.Concurrent;
 
 var number = new AsyncLocal<int>();
@@ -1141,6 +1148,7 @@ class MyThreadPool
         }
     }
 }
+```
 Here MyThreadPool has a BlockingCollection<(Action, ExecutionContext?)> that represents its work item queue, with each work item being the delegate for the work to be invoked as well as the ExecutionContext associated with that work. The static constructor for the pool spins up a bunch of threads, each of which just sits in an infinite loop taking the next work item and running it. If no ExecutionContext was captured for a given delegate, the delegate is just invoked directly. But if an ExecutionContext was captured, rather than invoking the delegate directly, we call the ExecutionContext.Run method, which will restore the supplied ExecutionContext as the current context prior to running the delegate, and will then reset the context afterwards. This example includes the exact same code with an AsyncLocal<int> previously shown, except this time using MyThreadPool instead of ThreadPool, yet it will still output 42 each time, because the pool is properly flowing ExecutionContext.
 
 As an aside, you’ll note I called UnsafeStart in MyThreadPool‘s static constructor. Starting a new thread is exactly the kind of asynchronous point that should flow ExecutionContext, and indeed, Thread‘s Start method uses ExecutionContext.Capture to capture the current context, store it on the Thread, and then use that captured context when eventually invoking the Thread‘s ThreadStart delegate. I didn’t want to do that in this example, though, as I didn’t want the Threads to capture whatever ExecutionContext happened to be present when the static constructor ran (doing so could make a demo about ExecutionContext more convoluted), so I used the UnsafeStart method instead. Threading-related methods that begin with Unsafe behave exactly the same as the corresponding method that lacks the Unsafe prefix except that they don’t capture ExecutionContext, e.g. Thread.Start and Thread.UnsafeStart do identical work, but whereas Start captures ExecutionContext, UnsafeStart does not.
@@ -1149,12 +1157,15 @@ As an aside, you’ll note I called UnsafeStart in MyThreadPool‘s static const
 
 We took a detour into discussing ExecutionContext when I was writing about the implementation of AsyncTaskMethodBuilder.Start, which I said was effectively:
 
+```csharp
 public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
 {
     stateMachine.MoveNext();
 }
+```
 and then suggested I simplified a bit. That simplification was ignoring the fact that the method actually needs to factor ExecutionContext into things, and is thus more like this:
 
+```csharp
 public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine
 {
     ExecutionContext previous = Thread.CurrentThread._executionContext; // [ThreadStatic] field
@@ -1167,10 +1178,12 @@ public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMac
         ExecutionContext.Restore(previous); // internal helper
     }
 }
+```
 Rather than just calling stateMachine.MoveNext() as I’d previously suggested we did, we do a dance here of getting the current ExecutionContext, then invoking MoveNext, and then upon its completion resetting the current context back to what it was prior to the MoveNext invocation.
 
 The reason for this is to prevent ambient data leakage from an async method out to its caller. An example method demonstrates why that matters:
 
+```csharp
 async Task ElevateAsAdminAndRunAsync()
 {
     using (WindowsIdentity identity = LoginAdmin())
@@ -1181,17 +1194,21 @@ async Task ElevateAsAdminAndRunAsync()
         }
     }
 }
+```
 “Impersonation” is the act of changing ambient information about the current user to instead be that of someone else; this lets code act on behalf of someone else, using their privileges and access. In .NET, such impersonation flows across asynchronous operations, which means it’s part of ExecutionContext. Now imagine if Start didn’t restore the previous context, and consider this code:
 
+```csharp
 Task t = ElevateAsAdminAndRunAsync();
 PrintUser();
 await t;
+```
 This code could find that the ExecutionContext modified inside of ElevateAsAdminAndRunAsync remains after ElevateAsAdminAndRunAsync returns to its synchronous caller (which happens the first time the method awaits something that’s not yet complete). That’s because after calling Impersonate, we call DoSensitiveWorkAsync and await the task it returns. Assuming that task isn’t complete, it will cause the invocation of ElevateAsAdminAndRunAsync to yield and return to the caller, with the impersonation still in effect on the current thread. That is not something we want. As such, Start erects this guard that ensures any modifications to ExecutionContext don’t flow out of the synchronous method call and only flow along with any subsequent work performed by the method.
 
 ### MoveNext
 
 So, the entry point method was invoked, the state machine struct was initialized, Start was called, and that invoked MoveNext. What is MoveNext? It’s the method that contains all of the original logic from the dev’s method, but with a whole bunch of changes. Let’s start just by looking at the scaffolding of the method. Here’s a decompiled version of what the compiler emit for our method, but with everything inside of the generated try block removed:
 
+```csharp
 private void MoveNext()
 {
     try
@@ -1210,21 +1227,25 @@ private void MoveNext()
     <buffer>5__2 = null;
     <>t__builder.SetResult();
 }
+```
 Whatever other work is performed by MoveNext, it has the responsibility of completing the Task returned from the async Task method when all of the work is done. If the body of the try block throws an exception that goes unhandled, then the task will be faulted with that exception. And if the async method successfully reaches its end (equivalent to a synchronous method returning), it will complete the returned task successfully. In either of those cases, it’s setting the state of the state machine to indicate completion. (I sometimes hear developers theorize that, when it comes to exceptions, there’s a difference between those thrown before the first await and after… based on the above, it should be clear that is not the case. Any exception that goes unhandled inside of an async method, no matter where it is in the method and no matter whether the method has yielded, will end up in the above catch block, with the caught exception then stored into the Task that’s returned from the async method.)
 
 Also note that this completion is going through the builder, using its SetException and SetResult methods that are part of the pattern for a builder expected by the compiler. If the async method has previously suspended, the builder will have already had to manufacture a Task as part of that suspension handling (we’ll see how and where soon), in which case calling SetException/SetResult will complete that Task. If, however, the async method hasn’t previously suspended, then we haven’t yet created a Task or returned anything to the caller, so the builder has more flexibility in how it produces that Task. If you remember previously in the entry point method, the very last thing it does is return the Task to the caller, which it does by returning the result of accessing the builder’s Task property (so many things called “Task”, I know):
 
+```csharp
 public Task CopyStreamToStreamAsync(Stream source, Stream destination)
 {
     ...
     return stateMachine.<>t__builder.Task;
 }
+```
 The builder knows if the method ever suspended, in which case it has a Task that was already created and just returns that. If the method never suspended and the builder doesn’t yet have a task, it can manufacture a completed task here. In this case, with a successful completion, it can just use Task.CompletedTask rather than allocating a new task, avoiding any allocation. In the case of a generic Task<TResult>, the builder can just use Task.FromResult<TResult>(TResult result).
 
 The builder can also do whatever translations it deems are appropriate to the kind of object it’s creating. For example, Task actually has three possible final states: success, failure, and canceled. The AsyncTaskMethodBuilder‘s SetException method special-cases OperationCanceledException, transitioning the Task into a TaskStatus.Canceled final state if the exception provided is or derives from OperationCanceledException; otherwise, the task ends as TaskStatus.Faulted. Such a distinction often isn’t apparent in consuming code; since the exception is stored into the Task regardless of whether it’s marked as Canceled or Faulted, code await‘ing that Task will not be able to observe the difference between the states (the original exception will be propagated in either case)… it only affects code that interacts with the Task directly, such as via ContinueWith, which has overloads that enable a continuation to be invoked only for a subset of completion statuses.
 
 Now that we understand the lifecycle aspects, here’s everything filled in inside the try block in MoveNext:
 
+```csharp
 private void MoveNext()
 {
     try
@@ -1288,12 +1309,14 @@ private void MoveNext()
     <buffer>5__2 = null;
     <>t__builder.SetResult();
 }
+```
 This kind of complication might feel a tad familiar. Remember how convoluted our manually-implemented BeginCopyStreamToStream based on APM was? This isn’t quite as complicated, but is also way better in that the compiler is doing the work for us, having rewritten the method in a form of continuation passing while ensuring that all necessary state is preserved for those continuations. Even so, we can squint and follow along. Remember that the state was initialized to -1 in the entry point. We then enter MoveNext, find that this state (which is now stored in the num local) is neither 0 nor 1, and thus execute the code that creates the temporary buffer and then branches to label IL_008b, where it makes the call to stream.ReadAsync. Note that at this point we’re still running synchronously from this call to MoveNext, and thus synchronously from Start, and thus synchronously from the entry point, meaning the developer’s code called CopyStreamToStreamAsync and it’s still synchronously executing, having not yet returned back a Task to represent the eventual completion of this method. That might be about to change…
 
 We call Stream.ReadAsync and we get back a Task<int> from it. The read may have completed synchronously, it may have completed asynchronously but so fast that it’s now already completed, or it might not have completed yet. Regardless, we have a Task<int> that represents its eventual completion, and the compiler emits code that inspects that Task<int> to determine how to proceed: if the Task<int> has in fact already completed (doesn’t matter whether it was completed synchronously or just by the time we checked), then the code for this method can just continue running synchronously… no point in spending unnecessary overhead queueing a work item to handle the remainder of the method’s execution when we can instead just keep running here and now. But to handle the case where the Task<int> hasn’t completed, the compiler needs to emit code to hook up a continuation to the Task. It thus needs to emit code that asks the Task “are you done?” Does it talk to the Task directly to ask that?
 
 It would be limiting if the only thing you could await in C# was a System.Threading.Tasks.Task. Similarly, it would be limiting if the C# compiler had to know about every possible type that could be awaited. Instead, C# does what it typically does in cases like this: it employs a pattern of APIs. Code can await anything that exposes that appropriate pattern, the “awaiter” pattern (just as you can foreach anything that provides the proper “enumerable” pattern). For example, we can augment the MyTask type we wrote earlier to implement the awaiter pattern:
 
+```csharp
 class MyTask
 {
     ...
@@ -1309,6 +1332,7 @@ class MyTask
         public void GetResult() => _task.Wait();
     }
 }
+```
 A type can be awaited if it exposes a GetAwaiter() method, which Task does. That method needs to return something that in turn exposes several members, including an IsCompleted property, which is used to check at the moment IsCompleted is called whether the operation has already completed. And you can see that happening: at IL_008b, the Task returned from ReadAsync has GetAwaiter called on it, and then IsCompleted accessed on that struct awaiter instance. If IsCompleted returns true, then we’ll end up falling through to IL_00f0, where the code calls another member of the awaiter: GetResult(). If the operation failed, GetResult() is responsible for throwing an exception in order to propagate it out of the await in the async method; otherwise, GetResult() is responsible for returning the result of the operation, if there is one. In the case here of the ReadAsync, if that result is 0, then we break out of our read/write loop, go to the end of the method where it calls SetResult, and we’re done.
 
 Backing up a moment, though, the really interesting part of all of this is what happens if that IsCompleted check actually returns false. If it returns true, we just keep on processing the loop, akin to in the APM pattern when CompletedSynchronously returned true and the caller of the Begin method, rather than the callback, was responsible for continuing execution. But if IsCompleted returns false, we need to suspend the execution of the async method until the await‘d operation completes. That means returning out of MoveNext, and as this was part of Start and we’re still in the entry point method, that means returning the Task out to the caller. But before any of that can happen, we need to hook up a continuation to the Task being awaited (noting that to avoid stack dives as in the APM case, if the asynchronous operation completes after IsCompleted returns false but before we get to hook up the continuation, the continuation still needs to be invoked asynchronously from the calling thread, and thus it’ll get queued). Since we can await anything, we can’t just talk to the Task instance directly; instead, we need to go through some pattern-based method to perform this.
@@ -1323,6 +1347,7 @@ That’s a lot more logic than we want the compiler to emit… we instead want i
 
 You can see in the code generated by the C# compiler happens when we need to suspend:
 
+```csharp
 if (!awaiter.IsCompleted) // we need to suspend when IsCompleted is false
 {
     <>1__state = 1;
@@ -1330,6 +1355,7 @@ if (!awaiter.IsCompleted) // we need to suspend when IsCompleted is false
     <>t__builder.AwaitUnsafeOnCompleted(ref awaiter, ref this);
     return;
 }
+```
 We’re storing into the state field the state id that indicates the location we should jump to when the method resumes. We’re then persisting the awaiter itself into a field, so that it can be used to call GetResult after resumption. And then just before returning out of the MoveNext call, the very last thing we do is call <>t__builder.AwaitUnsafeOnCompleted(ref awaiter, ref this), asking the builder to hook up a continuation to the awaiter for this state machine. (Note that it calls the builder’s AwaitUnsafeOnCompleted rather than the builder’s AwaitOnCompleted because the awaiter implements ICriticalNotifyCompletion; the state machine handles flowing ExecutionContext so we needn’t require the awaiter to as well… as mentioned earlier, doing so would just be duplicative and unnecessary overhead.)
 
 The implementation of that AwaitUnsafeOnCompleted method is too complicated to copy here, so I’ll summarize what it does on .NET Framework:
@@ -1344,14 +1370,17 @@ If this is the first time the method is suspending, we won’t yet have a boxed 
 
 Now comes a somewhat mind-bending step. If you look back at the definition of the state machine struct, it contains the builder, public AsyncTaskMethodBuilder <>t__builder;, and if you look at the definition of the builder, it contains internal IAsyncStateMachine m_stateMachine;. The builder needs to reference the boxed state machine so that on subsequent suspensions it can see it’s already boxed the state machine and doesn’t need to do so again. But we just boxed the state machine, and that state machine contained a builder whose m_stateMachine field is null. We need to mutate that boxed state machine’s builder’s m_stateMachine to point to its parent box. To achieve that, the IAsyncStateMachine interface that the compiler-generated state machine struct implements includes a void SetStateMachine(IAsyncStateMachine stateMachine); method, and that state machine struct includes an implementation of that interface method:
 
+```csharp
 private void SetStateMachine(IAsyncStateMachine stateMachine) =>
     <>t__builder.SetStateMachine(stateMachine);
+```
 So the builder boxes the state machine, and then passes that box to the box’s SetStateMachine method, which calls to the builder’s SetStateMachine method, which stores the box into the field. Whew.
 
 Finally, we have an Action that represents the continuation, and that’s passed to the awaiter’s UnsafeOnCompleted method. In the case of a TaskAwaiter, the task will store that Action into the task’s continuation list, such that when the task completes, it’ll invoke the Action, call back through the MoveNextRunner.Run, call back through ExecutionContext.Run, and finally invoke the state machine’s MoveNext method to re-enter the state machine and continue running from where it left off.
 
 That’s what happens on .NET Framework, and you can witness the outcome of this in a profiler, such as by running an allocation profiler to see what’s allocated on each await. Let’s take this silly program, which I’ve written just to highlight the allocation costs involved:
 
+```csharp
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -1374,6 +1403,7 @@ class Program
         }
     }
 }
+```
 This program is creating an AsyncLocal<int> to flow the value 42 through all subsequent async operations. It’s then calling SomeMethodAsync 1000 times, each of which is suspending/resuming 1000 times. In Visual Studio, I run this using the .NET Object Allocation Tracking profiler, which yields the following results:
 
 ![Allocation associated with asynchronous operations on .NET Framework](./AllocationNetFramework.png)
@@ -1418,13 +1448,16 @@ Things do start out the same: the method calls ExecutionContext.Capture() to get
 
 Then things diverge from .NET Framework. The builder in .NET Core has just a single field on it:
 
+```csharp
 public struct AsyncTaskMethodBuilder
 {
     private Task<VoidTaskResult>? m_task;
     ...
 }
+```
 After capturing the ExecutionContext, it checks whether that m_task field contains an instance of an AsyncStateMachineBox<TStateMachine>, where TStateMachine is the type of the compiler-generated state machine struct. That AsyncStateMachineBox<TStateMachine> type is the “magic.” It’s defined like this:
 
+```csharp
 private class AsyncStateMachineBox<TStateMachine> :
     Task<TResult>, IAsyncStateMachineBox
     where TStateMachine : IAsyncStateMachine
@@ -1434,6 +1467,7 @@ private class AsyncStateMachineBox<TStateMachine> :
     public ExecutionContext? Context;
     ...
 }
+```
 Rather than having a separate Task, this is the task (note its base type). Rather than boxing the state machine, the struct just lives as a strongly-typed field on this task. And rather than having a separate MoveNextRunner to store both the Action and the ExecutionContext, they’re just fields on this type, and since this is the instance that gets stored into the builder’s m_task field, we have direct access to it and don’t need to re-allocate things on every suspension. If the ExecutionContext changes, we can just overwrite the field with the new context and don’t need to allocate anything else; any Action we have still points to the right place. So, after capturing the ExecutionContext, if we already have an instance of this AsyncStateMachineBox<TStateMachine>, this isn’t the first time the method is suspending, and we can just store the newly captured ExecutionContext into it. If we don’t already have an instance of AsyncStateMachineBox<TStateMachine>, then we need to allocate it:
 
 var box = new AsyncStateMachineBox<TStateMachine>();
@@ -1454,6 +1488,7 @@ We can get rid of that last allocation as well, if desired, at least in an amort
 
 We can see the impact of this in our sample. Let’s slightly tweak our SomeMethodAsync we were profiling to return ValueTask instead of Task:
 
+```csharp
 static async ValueTask SomeMethodAsync()
 {
     for (int i = 0; i < 1000; i++)
@@ -1461,8 +1496,10 @@ static async ValueTask SomeMethodAsync()
         await Task.Yield();
     }
 }
+```
 That will result in this generated entry point:
 
+```csharp
 [AsyncStateMachine(typeof(<SomeMethodAsync>d__1))]
 private static ValueTask SomeMethodAsync()
 {
@@ -1472,8 +1509,10 @@ private static ValueTask SomeMethodAsync()
     stateMachine.<>t__builder.Start(ref stateMachine);
     return stateMachine.<>t__builder.Task;
 }
-Now, we add [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))] to the declaration of SomeMethodAsync:
+```
+Now, we add `[AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]` to the declaration of SomeMethodAsync:
 
+```csharp
 [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
 static async ValueTask SomeMethodAsync()
 {
@@ -1482,8 +1521,10 @@ static async ValueTask SomeMethodAsync()
         await Task.Yield();
     }
 }
+```
 and the compiler instead outputs this:
 
+```csharp
 [AsyncStateMachine(typeof(<SomeMethodAsync>d__1))]
 [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
 private static ValueTask SomeMethodAsync()
@@ -1494,6 +1535,7 @@ private static ValueTask SomeMethodAsync()
     stateMachine.<>t__builder.Start(ref stateMachine);
     return stateMachine.<>t__builder.Task;
 }
+```
 The actual C# code gen for the entirety of the implementation, including the whole state machine (not shown), is almost identical; the only difference is the type of the builder that’s created and stored and thus used everywhere we previously saw references to the builder. And if you look at the code for PoolingAsyncValueTaskMethodBuilder, you’ll see its structure is almost identical to that of AsyncTaskMethodBuilder, including using some of the exact same shared routines for doing things like special-casing known awaiter types. The key difference is that instead of doing new AsyncStateMachineBox<TStateMachine>() when the method first suspends, it instead does StateMachineBox<TStateMachine>.RentFromCache(), and upon the async method (SomeMethodAsync) completing and an await on the returned ValueTask completing, the rented box is returned to the cache. That means (amortized) zero allocation:
 
 ![Allocation associated with asynchronous operations on .NET Core with pooling](./AllocationNetCoreWithPooling.png)
@@ -1506,6 +1548,7 @@ Now, the objects created by async methods aren’t tiny, and they can be on supe
 
 We talked about SynchronizationContext previously in the context of the EAP pattern and mentioned that it would show up again. SynchronizationContext makes it possible to call reusable helpers and automatically be scheduled back whenever and to wherever the calling environment deems fit. As a result, it’s natural to expect that to “just work” with async/await, and it does. Going back to our button click handler from earlier:
 
+```csharp
 ThreadPool.QueueUserWorkItem(_ =>
 {
     string message = ComputeMessage();
@@ -1514,15 +1557,19 @@ ThreadPool.QueueUserWorkItem(_ =>
         button1.Text = message;
     });
 });
+```
 with async/await we’d like to instead be able to write this as follows:
 
+```csharp
 button1.Text = await Task.Run(() => ComputeMessage());
+```
 That invocation of ComputeMessage is offloaded to the thread pool, and upon the method’s completion, execution transitions back to the UI thread associated with the button, and the setting of its Text property happens on that thread.
 
 That integration with SynchronizationContext is left up to the awaiter implementation (the code generated for the state machine knows nothing about SynchronizationContext), as it’s the awaiter that is responsible for actually invoking or queueing the supplied continuation when the represented asynchronous operation completes. While a custom awaiter need not respect SynchronizationContext.Current, the awaiters for Task, Task<TResult>, ValueTask, and ValueTask<TResult> all do. That means that, by default, when you await a Task, a Task<TResult>, a ValueTask, a ValueTask<TResult>, or even the result of a Task.Yield() call, the awaiter by default will look up the current SynchronizationContext and then if it successfully got a non-default one, will eventually queue the continuation to that context.
 
 We can see this if we look at the code involved in TaskAwaiter. Here’s a snippet of the relevant code from Corelib:
 
+```csharp
 internal void UnsafeSetContinuationForAwait(IAsyncStateMachineBox stateMachineBox, bool continueOnCapturedContext)
 {
     if (continueOnCapturedContext)
@@ -1554,6 +1601,7 @@ internal void UnsafeSetContinuationForAwait(IAsyncStateMachineBox stateMachineBo
 
     ...
 }
+```
 This is part of a method that’s determining what object to store into the Task as a continuation. It’s being passed the stateMachineBox, which, as was alluded to earlier, can be stored directly into the Task‘s continuation list. However, this special logic might wrap that IAsyncStateMachineBox to also incorporate a scheduler if one is present. It checks to see whether there’s currently a non-default SynchronizationContext, and if there is, it creates a SynchronizationContextAwaitTaskContinuation as the actual object that’ll be stored as the continuation; that object in turn wraps the original and the captured SynchronizationContext, and knows how to invoke the former’s MoveNext in a work item queued to the latter. This is how you’re able to await as part of some event handler in a UI application and have the code after the awaits completion continue on the right thread. The next interesting thing to note here is that it’s not just paying attention to a SynchronizationContext: if it couldn’t find a custom SynchronizationContext to use, it also looks to see whether the TaskScheduler type that’s used by Tasks has a custom one in play that needs to be considered. As with SynchronizationContext, if there’s a non-default one of those, it’s then wrapped with the original box in a TaskSchedulerAwaitTaskContinuation that’s used as the continuation object.
 
 But arguably the most interesting thing to notice here is the very first line of the method body: if (continueOnCapturedContext). We only do these checks for SynchronizationContext/TaskScheduler if continueOnCapturedContext is true; if it’s false, the implementation behaves as if both were default and ignores them. What, pray tell, sets continueOnCapturedContext to false? You’ve probably guessed it: using the ever popular ConfigureAwait(false).
@@ -1562,14 +1610,17 @@ I talk about ConfigureAwait at length in ConfigureAwait FAQ, so I’d encourage 
 
 I previously mentioned one other aspect of SynchronizationContext, and I said we’d see it again: OperationStarted/OperationCompleted. Now’s the time. These rear their heads as part of the feature everyone loves to hate: async void. ConfigureAwait-aside, async void is arguably one of the most divisive features added as part of async/await. It was added for one reason and one reason only: event handlers. In a UI application, you want to be able to write code like the following:
 
+```csharp
 button1.Click += async (sender, eventArgs) =>
 {
   button1.Text = await Task.Run(() => ComputeMessage());
 };
+```
 but if all async methods had to have a return type like Task, you wouldn’t be able to do this. The Click event has a signature public event EventHandler? Click;, with EventHandler defined as public delegate void EventHandler(object? sender, EventArgs e);, and thus to provide a method that matches that signature, the method needs to be void-returning.
 
 There are a variety of reasons async void is considered bad, why articles recommend avoiding it wherever possible, and why analyzers have sprung up to flag use of them. One of the biggest issues is with delegate inference. Consider this program:
 
+```csharp
 using System.Diagnostics;
 
 Time(async () =>
@@ -1586,6 +1637,7 @@ static void Time(Action action)
     action();
     Console.WriteLine($"...done timing: {sw.Elapsed}");
 }
+```
 One could easily expect this to output an elapsed time of at least 10 seconds, but if you run this you’ll instead find output like this:
 
 Timing...
@@ -1595,16 +1647,19 @@ Huh? Of course, based on everything we’ve discussed in this post, it should be
 
 That’s where OperationStarted/OperationCompleted come in. Such async void methods are similar in nature to the EAP methods discussed earlier: the initiation of such methods is void, and so you need some other mechanism to be able to track all such operations in flight. The EAP implementations thus call the current SynchronizationContext‘s OperationStarted when the operation is initiated and OperationCompleted when it completes, and async void does the same. The builder associated with async void is AsyncVoidMethodBuilder. Remember in the entry point of an async method how the compiler-generated code invokes the builder’s static Create method to get an appropriate builder instance? AsyncVoidMethodBuilder takes advantage of that in order to hook creation and invoke OperationStarted:
 
+```csharp
 public static AsyncVoidMethodBuilder Create()
 {
     SynchronizationContext? sc = SynchronizationContext.Current;
     sc?.OperationStarted();
     return new AsyncVoidMethodBuilder() { _synchronizationContext = sc };
 }
+```
 Similarly, when the builder is marked for completion via either SetResult or SetException, it invokes the corresponding OperationCompleted method. This is how a unit testing framework like xunit is able to have async void test methods and still employ a maximum degree of concurrency on concurrent test executions, for example in xunit’s AsyncTestSyncContext.
 
 With that knowledge, we can now rewrite our timing sample:
 
+```csharp
 using System.Diagnostics;
 
 Time(async () =>
@@ -1657,6 +1712,7 @@ sealed class CountdownContext : SynchronizationContext
         _mres.Wait();
     }
 }
+```
 Here, I’ve created a SynchronizationContext that tracks a count for pending operations, and supports blocking waiting for them all to complete. When I run that, I get output like this:
 
 Timing...
@@ -1671,6 +1727,7 @@ At this point, we’ve seen the generated entry point method and how everything 
 
 For the CopyStreamToStream method shown earlier:
 
+```csharp
 public async Task CopyStreamToStreamAsync(Stream source, Stream destination)
 {
     var buffer = new byte[0x1000];
@@ -1680,8 +1737,10 @@ public async Task CopyStreamToStreamAsync(Stream source, Stream destination)
         await destination.WriteAsync(buffer, 0, numRead);
     }
 }
+```
 here are the fields we ended up with:
 
+```csharp
 private struct <CopyStreamToStreamAsync>d__0 : IAsyncStateMachine
 {
     public int <>1__state;
@@ -1694,6 +1753,7 @@ private struct <CopyStreamToStreamAsync>d__0 : IAsyncStateMachine
 
     ...
 }
+```
 What are each of these?
 
 <>1__state. The is the “state” in “state machine”. It defines the current state the state machine is in, and most importantly what should be done the next time MoveNext is called. If the state is -2, the operation has completed. If the state is -1, either we’re about to call MoveNext for the first time or MoveNext code is currently running on some thread. If you’re debugging an async method’s processing and you see the state as -1, that means there’s some thread somewhere that’s actually executing the code contained in the method. If the state is 0 or greater, the method is suspended, and the value of the state tells you at which await it’s suspended. While this isn’t a hard and fast rule (certain code patterns can confuse the numbering), in general the state assigned corresponds to the 0-based number of the await in top-to-bottom ordering of the source code. So, for example, if the body of an async method were entirely:
@@ -1705,12 +1765,16 @@ and you found the state value was 2, that almost certainly means the async metho
 
 <>t__builder. This is the builder for the state machine, e.g. AsyncTaskMethodBuilder for a Task, AsyncValueTaskMethodBuilder<TResult> for a ValueTask<TResult>, AsyncVoidMethodBuilder for an async void method, or whatever builder was declared for use via [AsyncMethodBuilder(...)] on either the async return type or overridden via such an attribute on the async method itself. As previously discussed, the builder is responsible for the lifecycle of the async method, including creating the return task, eventually completing that task, and serving as an intermediary for suspension, with the code in the async method asking the builder to suspend until a specific awaiter completes.
 source/destination. These are the method parameters. You can tell because they’re not name mangled; the compiler has named them exactly as the parameter names were specified. As noted earlier, all parameters that are used by the method body need to be stored onto the state machine so that the MoveNext method has access to them. Note I said “used by”. If the compiler sees that a parameter is unused by the body of the async method, it can optimize away the need to store the field. For example, given the method:
+
+```csharp
 public async Task M(int someArgument)
 {
     await Task.Yield();
 }
+```
 the compiler will emit these fields onto the state machine:
 
+```csharp
 private struct <M>d__0 : IAsyncStateMachine
 {
     public int <>1__state;
@@ -1718,15 +1782,19 @@ private struct <M>d__0 : IAsyncStateMachine
     private YieldAwaitable.YieldAwaiter <>u__1;
     ...
 }
+```
 Note the distinct lack of something named someArgument. But, if we change the async method to actually use the argument in any way:
 
+```csharp
 public async Task M(int someArgument)
 {
     Console.WriteLine(someArgument);
     await Task.Yield();
 }
+```
 it shows up:
 
+```csharp
 private struct <M>d__0 : IAsyncStateMachine
 {
     public int <>1__state;
@@ -1735,8 +1803,11 @@ private struct <M>d__0 : IAsyncStateMachine
     private YieldAwaitable.YieldAwaiter <>u__1;
     ...
 }
+```
 <buffer>5__2;. This is the buffer “local” that got lifted to be a field so that it could survive across await points. The compiler tries reasonably hard to keep state from being lifted unnecessarily. Note that there’s another local in the source, numRead, that doesn’t have a corresponding field in the state machine. Why? Because it’s not necessary. That local is set as the result of the ReadAsync call and is then used as the input to the WriteAsync call. There’s no await in between those and across which the numRead value would need to be stored. Just as how in a synchronous method the JIT compiler could choose to store such a value entirely in a register and never actually spill it to the stack, the C# compiler can avoid lifting this local to be a field as it needn’t preserve it’s value across any awaits. In general, the C# compiler can elide lifting locals if it can prove that their value needn’t be preserved across awaits.
 <>u__1 and <>u__2. There are two awaits in the async method: one for a Task<int> returned by ReadAsync, and one for a Task returned by WriteAsync. Task.GetAwaiter() returns a TaskAwaiter, and Task<TResult>.GetAwaiter() returns a TaskAwaiter<TResult>, both of which are distinct struct types. Since the compiler needs to get these awaiters prior to the await (IsCompleted, UnsafeOnCompleted) and then needs to access them after the await (GetResult), the awaiters need to be stored . And since they’re distinct struct types, the compiler needs to maintain two separate fields to do so (the alternative would be to box them and have a single object field for awaiters, but that would result in extra allocation costs). The compiler will try to reuse fields whenever possible, though. If I have:
+
+```csharp
 public async Task M()
 {
     await Task.FromResult(1);
@@ -1745,8 +1816,10 @@ public async Task M()
     await Task.FromResult(false);
     await Task.FromResult(3);
 }
+```
 there are five awaits, but only two different types of awaiters involved: three are TaskAwaiter<int> and two are TaskAwaiter<bool>. As such, there only end up being two awaiter fields on the state machine:
 
+```csharp
 private struct <M>d__0 : IAsyncStateMachine
 {
     public int <>1__state;
@@ -1755,8 +1828,10 @@ private struct <M>d__0 : IAsyncStateMachine
     private TaskAwaiter<bool> <>u__2;
     ...
 }
+```
 Then if I change my example to instead be:
 
+```csharp
 public async Task M()
 {
     await Task.FromResult(1);
@@ -1765,8 +1840,10 @@ public async Task M()
     await Task.FromResult(false).ConfigureAwait(false);
     await Task.FromResult(3);
 }
+```
 there are still only Task<int>s and Task<bool>s involved, but I’m actually using four distinct struct awaiter types, because the awaiter returned from the GetAwaiter() call on the thing returned by ConfigureAwait is a different type than that returned by Task.GetAwaiter()… this is again evident from the awaiter fields created by the compiler:
 
+```csharp
 private struct <M>d__0 : IAsyncStateMachine
 {
     public int <>1__state;
@@ -1777,6 +1854,7 @@ private struct <M>d__0 : IAsyncStateMachine
     private ConfiguredTaskAwaitable<bool>.ConfiguredTaskAwaiter <>u__4;
     ...
 }
+```
 If you find yourself wanting to optimize the size associated with an async state machine, one thing you can look at is whether you can consolidate the kinds of things being awaited and thereby consolidate these awaiter fields.
 
 There are other kinds of fields you might see defined on a state machine. Notably, you might see some fields containing the word “wrap”. Consider this silly example:
@@ -1784,6 +1862,7 @@ There are other kinds of fields you might see defined on a state machine. Notabl
 public async Task<int> M() => await Task.FromResult(42) + DateTime.Now.Second;
 This produces a state machine with the following fields:
 
+```csharp
 private struct <M>d__0 : IAsyncStateMachine
 {
     public int <>1__state;
@@ -1791,11 +1870,13 @@ private struct <M>d__0 : IAsyncStateMachine
     private TaskAwaiter<int> <>u__1;
     ...
 }
+```
 Nothing special so far. Now flip the order of the expressions being added:
 
 public async Task<int> M() => DateTime.Now.Second + await Task.FromResult(42);
 With that, you get these fields:
 
+```csharp
 private struct <M>d__0 : IAsyncStateMachine
 {
     public int <>1__state;
@@ -1804,6 +1885,7 @@ private struct <M>d__0 : IAsyncStateMachine
     private TaskAwaiter<int> <>u__1;
     ...
 }
+```
 We now have one more: <>7__wrap1. Why? Because we computed the value of DateTime.Now.Second, and only after computing it, we had to await something, and the value of the first expression needs to be preserved in order to add it to the result of the second. The compiler thus needs to ensure that the temporary result from that first expression is available to add to the result of the await, which means it needs to spill the result of the expression into a temporary, which it does with this <>7__wrap1 field. If you ever find yourself hyper-optimizing async method implementations to drive down the amount of memory allocated, you can look for such fields and see if small tweaks to the source could avoid the need for spilling and thus avoid the need for such temporaries.
 
 ## Wrap Up
