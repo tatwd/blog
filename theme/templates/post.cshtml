@@ -1,3 +1,4 @@
+@using System.Globalization;
 @using MyBlog;
 
 <!DOCTYPE html>
@@ -50,7 +51,7 @@
     </div>
     <h1 class="font-sans text-black">@Model.Post.Title</h1>
     <small class="text-light">
-      <span>@Model.Post.CreateTime.ToString("MMMM d, yyyy")</span>
+      <span>@Model.Post.CreateTime.ToString("MMM d, yyyy", new CultureInfo("en-US"))</span>
       •
       <span>@Model.Post.TimeToRead</span>
       @foreach (var tag in Model.Post.Tags)

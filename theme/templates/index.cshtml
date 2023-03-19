@@ -1,3 +1,5 @@
+@using System.Globalization;
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -90,7 +92,7 @@
             }
           </div>
           <div class="text-light">
-            <span>@item.CreateTime.ToString("MMM d, yyyy")</span>
+            <span>@item.CreateTime.ToString("MMM d, yyyy", new CultureInfo("en-US"))</span>
             •
             <span>@item.TimeToRead</span>
           </div>
