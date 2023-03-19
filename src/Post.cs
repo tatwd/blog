@@ -10,8 +10,9 @@ public class Post
     public string AbstractText { get; set; } = null!;
     // public string PostRoute { get; set; } = null!;
     public DateTime CreateTime { get; set; }
+    public DateTime? UpdateTime { get; set; }
     public string[] Tags { get; set; } = Array.Empty<string>();
     public string TemplateName { get; set; } = null!;
     public string Lang { get; set; } = null!;
-
+    public bool IsDraft { get; set; }
 }

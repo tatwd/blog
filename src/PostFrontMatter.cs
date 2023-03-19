@@ -9,7 +9,8 @@ public class PostFrontMatter
 
     [YamlMember(Alias = "create_time")]
     public DateTime CreateTime { get; set; }
-
+    [YamlMember(Alias = "update_time")]
+    public DateTime? UpdateTime { get; set; }
     [YamlMember(Alias = "tags")]
     public string[] Tags { get; set; } = Array.Empty<string>();
 

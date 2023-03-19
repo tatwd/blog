@@ -105,9 +105,11 @@ foreach (var (dirPath, defaultTemplateName) in markdownDirList)
             AbstractText = abstractText,
             Lang = frontMatter.Lang,
             CreateTime = frontMatter.CreateTime,
+            UpdateTime = frontMatter.UpdateTime,
             Tags = frontMatter.Tags,
             Pathname = RewriteIndexHtml(pathname),
-            TemplateName = frontMatter.TemplateName ?? defaultTemplateName
+            TemplateName = frontMatter.TemplateName ?? defaultTemplateName,
+            IsDraft = frontMatter.Draft
         };
 
         if (post.TemplateName == "post")
@@ -250,7 +252,7 @@ async Task WriteAtomFeedAsync(IEnumerable<Post> posts, string distPath)
         {
             Description = post.AbstractText,
             Category = categories,
-            Published = post.CreateTime
+            Published = post.UpdateTime
         };
 
         feed.AddItem(item);
