@@ -1,22 +1,22 @@
 ---
-title: "[译] C# 中 ayscn/await 是如何工作的？"
+title: "[译] C# 中 ayscn/await 是如何真正工作的？"
 tags:
   - dotnet
   - 译文
 create_time: 2023-03-19 12:13
-update_time: 2023-03-19 13:51
+update_time: 2023-03-19 17:13
 draft: true
-description: Async/await was added to the C# language over a decade ago and has transformed how we write scalable code for .NET. But how does it really work? In this post, we take a deep dive into its internals.
+description: Async/await 在十多年前被添加到 C# 语言中，它改变了我们为 .NET 编写可伸缩代码的方式。但它是如何真正工作的呢？在这篇文章中，我们将深入研究其内部结构。
 ---
 
 > 原文：[Stephen Toub, How Async/Await Really Works in C#](https://devblogs.microsoft.com/dotnet/how-async-await-really-works/)
 
-Several weeks ago, the [.NET Blog](https://devblogs.microsoft.com/dotnet/) featured a post [What is .NET, and why should you choose it?](https://devblogs.microsoft.com/dotnet/why-dotnet/). It provided a high-level overview of the platform, summarizing various components and design decisions, and promising more in-depth posts on the covered areas. This post is the first such follow-up, deep-diving into the history leading to, the design decisions behind, and implementation details of async/await in C# and .NET.
+几周前，[.NET 博客](https://devblogs.microsoft.com/dotnet/) 发表了一篇文章《[What is .NET, and why should you choose it?](https://devblogs.microsoft.com/dotnet/why-dotnet/)》。它对平台进行了高层次的概述，总结了各种组成部分和设计决策，并承诺就所涵盖的领域发表更深入的帖子。本文是后续的第一篇文章，将深入探讨 `async`/`await` 在 C# 和 .NET 中的历史、背后的设计决策以及实现细节。
 
-The support for `async`/`await` has been around now for over a decade. In that time, it’s transformed how scalable code is written for .NET, and it’s both viable and extremely common to utilize the functionality without understanding exactly what’s going on under the covers. You start with a synchronous method like the following (this method is “synchronous” because a caller will not be able to do anything else until this whole operation completes and control is returned back to the caller):
+对 `async`/`await` 的支持已经存在超过十年了。在这期间，它改变了为 .NET 编写可伸缩代码的方式，在不了解其背后到底发生了什么的情况下使用这些功能是可行的，也是非常常见的。你可以像下面这样定义一个同步方法（此方法是“同步”的，因为在整个操作完成并将控制权返回给调用方之前，调用方将无法执行任何其他操作）：
 
 ```csharp
-// Synchronously copy all data from source to destination.
+// 同步地从 source 复制所有数据到 destination
 public void CopyStreamToStream(Stream source, Stream destination)
 {
     var buffer = new byte[0x1000];
@@ -28,10 +28,10 @@ public void CopyStreamToStream(Stream source, Stream destination)
 }
 ```
 
-Then you sprinkle a few keywords, change a few method names, and you end up with the following asynchronous method instead (this method is “asynchronous” because control is expected to be returned back to its caller very quickly and possibly before the work associated with the whole operation has completed):
+然后，你只需要添加一些关键字、更改一下方法名，将最终得到如下所示的异步方法（此方法是“异步”的，因为在与整个操作完成之前，控制权有望很快返回给调用方）：
 
 ```csharp
-// Asynchronously copy all data from source to destination.
+// 异步地从 source 复制所有数据到 destination
 public async Task CopyStreamToStreamAsync(Stream source, Stream destination)
 {
     var buffer = new byte[0x1000];
@@ -42,15 +42,15 @@ public async Task CopyStreamToStreamAsync(Stream source, Stream destination)
     }
 }
 ```
-Almost identical in syntax, still able to utilize all of the same control flow constructs, but now non-blocking in nature, with a significantly different underlying execution model, and with all the heavy lifting done for you under the covers by the C# compiler and core libraries.
+语法几乎相同，仍然能够利用所有相同的控制流结构，但现在本质上是非阻塞的，具有显着不同的底层执行模型，并且所有繁重的工作都将由 C# 编译器和核心库来为你完成。
 
-While it’s common to use this support without knowing exactly what’s happening under the hood, I’m a firm believer that understanding how something actually works helps you to make even better use of it. For async/await in particular, understanding the mechanisms involved is especially helpful when you want to look below the surface, such as when you’re trying to debug things gone wrong or improve the performance of things otherwise gone right. In this post, then, we’ll deep-dive into exactly how await works at the language, compiler, and library level, so that you can make the most of these valuable features.
+虽然通常情况下使用这个特性并不需要知道其发生了什么，但我坚信了解其真正的工作原理能够帮助你更好地使用它。特别是在 `async`/`await` 方面，当你想要深入了解其机制时，例如当你试图调试出现问题或改进本来运行正常的程序性能时，了解所涉及的机制是尤其有帮助的。在这篇文章中，我们将深入探讨 `await` 在语言、编译器和库层面上的运作方式，以便你能充分利用这些有价值的特性。
 
-To do that well, though, we need to go way back to before async/await to understand what state-of-the-art asynchronous code looked like in its absence. Fair warning, it wasn’t pretty.
+但是，要做到这一点，我们需要回到 `async`/`await` 之前，以了解在没有它的情况下最先进状态的异步代码是什么样子的。老实讲，它并不美观。
 
-## 最初..
+## 最初之时...
 
-早在 .NET Framework 1.0 中就已经存在着一个异步编程模型，即众所周知的 APM 模式、 Begin/End 模式、`IAsyncResult` 模式。这个模式让异步操作在高层次的使用中变得简单。例如，对于一个异步操作 `DoStuff`：  <!--All the way back in .NET Framework 1.0, there was the Asynchronous Programming Model pattern, otherwise known as the APM pattern, otherwise known as the Begin/End pattern, otherwise known as the IAsyncResult pattern. At a high-level, the pattern is simple. For a synchronous operation `DoStuff`: -->
+早在 .NET Framework 1.0 中，就已经存在着一个异步编程模型模式，也被称为 APM 模式、 Begin/End 模式、`IAsyncResult` 模式。这个模式让异步操作在高层次的使用中变得简单。例如，对于一个异步操作 `DoStuff`：
 
 ```csharp
 class Handler
@@ -58,8 +58,7 @@ class Handler
     public int DoStuff(string arg);
 }
 ```
-那么它将有两个相应的方法来组成这个模式：`BeginDoStuff` 方法和 `EndDoStuff` 方法。
-<!-- there would be two corresponding methods as part of the pattern: a `BeginDoStuff` method and an `EndDoStuff` method: -->
+它将有两个相应的方法来组成这个模式：`BeginDoStuff` 和 `EndDoStuff` 方法。
 
 ```csharp
 class Handler
