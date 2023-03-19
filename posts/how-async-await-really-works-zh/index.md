@@ -4,7 +4,7 @@ tags:
   - dotnet
   - 译文
 create_time: 2023-03-19 12:13
-update_time: 2023-03-19 13:00
+update_time: 2023-03-19 13:51
 draft: true
 description: Async/await was added to the C# language over a decade ago and has transformed how we write scalable code for .NET. But how does it really work? In this post, we take a deep dive into its internals.
 ---
@@ -48,8 +48,9 @@ While it’s common to use this support without knowing exactly what’s happeni
 
 To do that well, though, we need to go way back to before async/await to understand what state-of-the-art asynchronous code looked like in its absence. Fair warning, it wasn’t pretty.
 
-## In the beginning…
-All the way back in .NET Framework 1.0, there was the Asynchronous Programming Model pattern, otherwise known as the APM pattern, otherwise known as the Begin/End pattern, otherwise known as the IAsyncResult pattern. At a high-level, the pattern is simple. For a synchronous operation DoStuff:
+## 最初..
+
+早在 .NET Framework 1.0 中就已经存在着一个异步编程模型，即众所周知的 APM 模式、 Begin/End 模式、`IAsyncResult` 模式。这个模式让异步操作在高层次的使用中变得简单。例如，对于一个异步操作 `DoStuff`：  <!--All the way back in .NET Framework 1.0, there was the Asynchronous Programming Model pattern, otherwise known as the APM pattern, otherwise known as the Begin/End pattern, otherwise known as the IAsyncResult pattern. At a high-level, the pattern is simple. For a synchronous operation `DoStuff`: -->
 
 ```csharp
 class Handler
@@ -57,7 +58,8 @@ class Handler
     public int DoStuff(string arg);
 }
 ```
-there would be two corresponding methods as part of the pattern: a BeginDoStuff method and an EndDoStuff method:
+那么它将有两个相应的方法来组成这个模式：`BeginDoStuff` 方法和 `EndDoStuff` 方法。
+<!-- there would be two corresponding methods as part of the pattern: a `BeginDoStuff` method and an `EndDoStuff` method: -->
 
 ```csharp
 class Handler
@@ -68,7 +70,7 @@ class Handler
     public int EndDoStuff(IAsyncResult asyncResult);
 }
 ```
-BeginDoStuff would accept all of the same parameters as does DoStuff, but in addition it would also accept an AsyncCallback delegate and an opaque state object, one or both of which could be null. The Begin method was responsible for initiating the asynchronous operation, and if provided with a callback (often referred to as the “continuation” for the initial operation), it was also responsible for ensuring the callback was invoked when the asynchronous operation completed. The Begin method would also construct an instance of a type that implemented IAsyncResult, using the optional state to populate that IAsyncResult‘s AsyncState property:
+`BeginDoStuff` would accept all of the same parameters as does `DoStuff`, but in addition it would also accept an [`AsyncCallback`](https://github.com/dotnet/runtime/blob/967a59712996c2cdb8ce2f65fb3167afbd8b01f3/src/libraries/System.Private.CoreLib/src/System/AsyncCallback.cs#L14) delegate and an opaque state `object`, one or both of which could be `null`. The Begin method was responsible for initiating the asynchronous operation, and if provided with a callback (often referred to as the “continuation” for the initial operation), it was also responsible for ensuring the callback was invoked when the asynchronous operation completed. The Begin method would also construct an instance of a type that implemented [`IAsyncResult`](https://github.com/dotnet/runtime/blob/967a59712996c2cdb8ce2f65fb3167afbd8b01f3/src/libraries/System.Private.CoreLib/src/System/IAsyncResult.cs#L17-L27), using the optional `state` to populate that `IAsyncResult`‘s `AsyncState` property:
 
 ```csharp
 namespace System
