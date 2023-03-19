@@ -1,0 +1,26 @@
+name: Deploy redirect.js
+
+on:
+  push
+    branches:
+      - main
+    paths:
+      - 'redirect.js'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # This is required to allow the GitHub Action to authenticate with Deno Deploy.
+      contents: read
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Deno Deploy
+        uses: denoland/deployctl@v1
+        with:
+          project: blog-redirect # the name of the project on Deno Deploy
+          entrypoint: redirect.js # the entrypoint to deploy
