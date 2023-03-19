@@ -3,11 +3,12 @@
 const destWebsite = "https://blog.cloong.me";
 
 function handleRequest(request) {
-  const { pathname, search } = new URL(request.url);
+  const { pathname, host, searchParams } = new URL(request.url);
+  searchParams.set("__from", host);
   const html = `<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Refresh" content="0; URL=${destWebsite}${pathname}${search}" />
+  <meta http-equiv="Refresh" content="0; URL=${destWebsite}${pathname}?${searchParams.toString()}" />
 </head>
 </html>`;
   return new Response(html, {
