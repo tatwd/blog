@@ -1,6 +1,10 @@
 name: Deploy blog
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+    paths:
+      ['src/**', 'spa/**', 'posts/**', 'tests/**', 'theme/**', 'VERSION']
 
 jobs:
   build:
