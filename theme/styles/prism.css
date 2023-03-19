@@ -1,8 +1,8 @@
 :root {
   --code-bgcolor: #f6f8fa;
   --code-color: #666;
-  --code-fonts: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  --code-fonts: ui-monospace, SFMono-Regular, Menlo, Monaco, "Fira Code",
+    Consolas, "Liberation Mono", "Courier New", sans-serif, monospace;
   --code-size: 13px;
 }
 
@@ -13,7 +13,7 @@
 
 @media (min-width: 768px) {
   :root {
-    --code-size: 1em;
+    --code-size: 0.95em;
   }
 }
 
@@ -30,7 +30,7 @@ pre[class*="language-"] {
   word-spacing: normal;
   word-break: normal;
   word-wrap: normal;
-  line-height: 1.5;
+  line-height: 1.4;
 
   -moz-tab-size: 4;
   -o-tab-size: 4;
@@ -44,7 +44,7 @@ pre[class*="language-"] {
 
 /* Code blocks */
 pre[class*="language-"] {
-  padding: 1em;
+  padding: 0.9em 1em;
   margin: 0.5em 0;
   overflow: auto;
   border-radius: 0.3em;
