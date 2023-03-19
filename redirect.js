@@ -1,4 +1,5 @@
 // Only used by Deno Deploy
+// my blog target domain
 const destWebsite = "https://blog.cloong.me";
 
 function handleRequest(request) {
