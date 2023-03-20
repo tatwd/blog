@@ -69,7 +69,7 @@ class Handler
     public int EndDoStuff(IAsyncResult asyncResult);
 }
 ```
-`BeginDoStuff` would accept all of the same parameters as does `DoStuff`, but in addition it would also accept an [`AsyncCallback`](https://github.com/dotnet/runtime/blob/967a59712996c2cdb8ce2f65fb3167afbd8b01f3/src/libraries/System.Private.CoreLib/src/System/AsyncCallback.cs#L14) delegate and an opaque state `object`, one or both of which could be `null`. The Begin method was responsible for initiating the asynchronous operation, and if provided with a callback (often referred to as the “continuation” for the initial operation), it was also responsible for ensuring the callback was invoked when the asynchronous operation completed. The Begin method would also construct an instance of a type that implemented [`IAsyncResult`](https://github.com/dotnet/runtime/blob/967a59712996c2cdb8ce2f65fb3167afbd8b01f3/src/libraries/System.Private.CoreLib/src/System/IAsyncResult.cs#L17-L27), using the optional `state` to populate that `IAsyncResult`‘s `AsyncState` property:
+`BeginDoStuff` 方法将接受与 `DoStuff` 相同的所有参数，但除此之外，它还支持传递一个 [`AsyncCallback`](https://github.com/dotnet/runtime/blob/967a59712996c2cdb8ce2f65fb3167afbd8b01f3/src/libraries/System.Private.CoreLib/src/System/AsyncCallback.cs#L14) 类型委托和一个不透明的状态对象，二者都支持设置为 `null`。这个 Begin 方法负责初始化一个异步操作，而且如果提供了一个回调（通常被称为这个初始化操作的“延续”）的话, 它还负责确保在异步操作完成时调用这个回调。Begin 还将构造一个实现了 [`IAsyncResult`](https://github.com/dotnet/runtime/blob/967a59712996c2cdb8ce2f65fb3167afbd8b01f3/src/libraries/System.Private.CoreLib/src/System/IAsyncResult.cs#L17-L27) 类型的实例，使用可选参数 `state` 来填充 `IAsyncResult` 实例的 `AsyncState` 属性：
 
 ```csharp
 namespace System
@@ -85,7 +85,7 @@ namespace System
     public delegate void AsyncCallback(IAsyncResult ar);
 }
 ```
-This IAsyncResult instance would then both be returned from the Begin method as well as passed to the AsyncCallback when it was eventually invoked. When ready to consume the results of the operation, a caller would then pass that IAsyncResult instance to the End method, which was responsible for ensuring the operation was completed (synchronously waiting for it to complete by blocking if it wasn’t) and then returning any result of the operation, including propagating any errors/exceptions that may have occurred. Thus, instead of writing code like the following to perform the operation synchronously:
+This `IAsyncResult` instance would then both be returned from the Begin method as well as passed to the `AsyncCallback` when it was eventually invoked. When ready to consume the results of the operation, a caller would then pass that `IAsyncResult` instance to the End method, which was responsible for ensuring the operation was completed (synchronously waiting for it to complete by blocking if it wasn’t) and then returning any result of the operation, including propagating any errors/exceptions that may have occurred. Thus, instead of writing code like the following to perform the operation synchronously:
 
 ```csharp
 try
@@ -403,7 +403,7 @@ And all of that complication meant that very few folks even attempted this, and 
 
 We needed a better way, one in which we learned from the APM pattern, incorporating the things it got right while avoiding its pitfalls. An interesting thing to note is that the APM pattern is just that, a pattern; the runtime, core libraries, and compiler didn’t provide any assistance in consuming or implementing the pattern.
 
-## Event-Based Asynchronous Pattern
+## 基于事件的异步模式
 
 .NET Framework 2.0 saw a few APIs introduced that implemented a different pattern for handling asynchronous operations, one primarily intended for doing so in the context of client applications. This Event-based Asynchronous Pattern, or EAP, also came as a pair of members (at least, possibly more), this time a method to initiate the asynchronous operation and an event to listen for its completion. Thus, our earlier DoStuff example might have been exposed as a set of members like this:
 
@@ -553,7 +553,7 @@ SynchronizationContext provides a few more trinkets worthy of mention as they’
 
 So, we needed something better than the APM pattern, and the EAP that came next introduced some new things but didn’t really address the core problems we faced. We still needed something better.
 
-## Enter Tasks
+## 深入 Tasks
 
 .NET Framework 4.0 introduced the System.Threading.Tasks.Task type. At its heart, a Task is just a data structure that represents the eventual completion of some asynchronous operation (other frameworks call a similar type a “promise” or a “future”). A Task is created to represent some operation, and then when the operation it logically represents completes, the results are stored into that Task. Simple enough. But the key feature that Task provides that makes it leaps and bounds more useful than IAsyncResult is that it builds into itself the notion of a continuation. That one feature means you can walk up to any Task and ask to be notified asynchronously when it completes, with the task itself handling the synchronization to ensure the continuation is invoked regardless of whether the task has already completed, hasn’t yet completed, or is completing concurrently with the notification request. Why is that so impactful? Well, if you remember back to our discussion of the old APM pattern, there were two primary problems.
 
@@ -730,7 +730,7 @@ You get the idea.
 
 With Task in place, all previous async patterns in .NET became a thing of the past. Anywhere an asynchronous implementation previously was implemented with the APM pattern or the EAP pattern, new Task-returning methods were exposed.
 
-## And ValueTasks
+## 深入 ValueTasks
 
 Task continues to be the workhorse for asynchrony in .NET to this day, with new methods exposed every release and routinely throughout the ecosystem that return Task and Task<TResult>. However, Task is a class, which means creating one does come with an allocation. For the most part, one extra allocation for a long-lived asynchronous operation is a pittance and won’t meaningfully impact performance for all but the most performance-sensitive operations. However, as was previously noted, synchronous completion of asynchronous operations is fairly common. Stream.ReadAsync was introduced to return a Task<int>, but if you’re reading from, say, a BufferedStream, there’s a really good chance many of your reads are going to complete synchronously due to simply needing to pull data from an in-memory buffer rather than performing syscalls and real I/O. Having to allocate an additional object just to return such data is unfortunate (note it was the case with APM as well). For non-generic Task-returning methods, the method can just return a singleton already-completed task, and in fact one such singleton is provided by Task in the form of Task.CompletedTask. But for Task<TResult>, it’s impossible to cache a Task for every possible TResult. What can we do to make such synchronous completion faster?
 
@@ -779,6 +779,7 @@ It’s still really hard to get right!!!
 How can we fix that????
 
 ## C# Iterators to the Rescue
+
 The glimmer of hope for that solution actually came about a few years before Task hit the scene, with C# 3.0, when it added support for iterators.
 
 “Iterators?” you ask? “You mean for IEnumerable<T>?” That’s the one. Iterators let you write a single method that is then used by the compiler to implement an IEnumerable<T> and/or an IEnumerator<T>. For example, if I wanted to create an enumerable that yielded the Fibonacci sequence, I might write something like this:
