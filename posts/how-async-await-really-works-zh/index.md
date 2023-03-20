@@ -1,5 +1,5 @@
 ---
-title: "[译] C# 中 ayscn/await 是如何真正工作的？"
+title: "[译] C# 中 Ayscn/Await 是如何真正工作的？"
 tags:
   - dotnet
   - 译文
