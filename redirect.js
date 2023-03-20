@@ -4,7 +4,7 @@ const destWebsite = "https://blog.cloong.me";
 
 function handleRequest(request) {
   const { pathname, host, searchParams } = new URL(request.url);
-  searchParams.set("__from", host);
+  // searchParams.set("__from", host);
   const html = `<!DOCTYPE html>
 <html>
 <head>
