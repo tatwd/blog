@@ -85,7 +85,7 @@ namespace System
     public delegate void AsyncCallback(IAsyncResult ar);
 }
 ```
-This `IAsyncResult` instance would then both be returned from the Begin method as well as passed to the `AsyncCallback` when it was eventually invoked. When ready to consume the results of the operation, a caller would then pass that `IAsyncResult` instance to the End method, which was responsible for ensuring the operation was completed (synchronously waiting for it to complete by blocking if it wasn’t) and then returning any result of the operation, including propagating any errors/exceptions that may have occurred. Thus, instead of writing code like the following to perform the operation synchronously:
+这个 `IAsyncResult` 实例将从 Begin 方法返回，并最终在 AsyncCallback 调用时传递给它。当调用方准备使用这个操作的结果时, 需要将 `IAsyncResult` 实例传递给 End 方法，该方法负责确保操作完成（如果没完成，则通过阻塞的方式同步等待它完成），然后返回操作的任何结果，包括传播可能发生的任何错误/异常。因此，与其像下面这样编写代码来同步执行操作：
 
 ```csharp
 try
@@ -98,7 +98,7 @@ catch (Exception e)
     ... // handle exceptions from DoStuff and Use
 }
 ```
-the Begin/End methods could be used in the following manner to perform the same operation asynchronously:
+不如用以下方式来使 Begin/End 方法异步地执行相同的操作：
 
 ```csharp
 try
@@ -122,9 +122,9 @@ catch (Exception e)
     ... // handle exceptions thrown from the synchronous call to BeginDoStuff
 }
 ```
-For anyone who’s dealt with callback-based APIs in any language, this should feel familiar.
+对于在别的语言中使用过基于回调式 API 的人来说，这应该会感到熟悉。
 
-Things only got more complicated from there, however. For instance, there’s the issue of “stack dives.” A stack dive is when code repeatedly makes calls that go deeper and deeper on the stack, to the point where it could potentially stack overflow. The Begin method is allowed to invoke the callback synchronously if the operation completes synchronously, meaning the call to Begin might itself directly invoke the callback. And “asynchronous” operations that complete synchronously are actually very common; they’re not “asynchronous” because they’re guaranteed to complete asynchronously but rather are just permitted to. For example, consider an asynchronous read from some networked operation, like receiving from a socket. If you need only a small amount of data for each individual operation, such as reading some header data from a response, you might put a buffer in place in order to avoid the overhead of lots of system calls. Instead of doing a small read for just the amount of data you need immediately, you perform a larger read into the buffer and then consume data from that buffer until its exhausted; that lets you reduce the number of expensive system calls required to actually interact with the socket. Such a buffer might exist behind whatever asynchronous abstraction you’re using, such that the first “asynchronous” operation you perform (filling the buffer) completes asynchronously, but then all subsequent operations until that underlying buffer is exhausted don’t actually need to do any I/O, instead just pulling from the buffer, and can thus all complete synchronously. When the Begin method performs one of these operations, and finds it completes synchronously, it can then invoke the callback synchronously. That means you have one stack frame that called the Begin method, another stack frame for the Begin method itself, and now another stack frame for the callback. Now what happens if that callback turns around and calls Begin again? If that operation completes synchronously and its callback is invoked synchronously, you’re now again several more frames deep on the stack. And so on, and so on, until eventually you run out of stack.
+然而，自此事情变得越加复杂。例如，这种设计会存在“stack dive”的问题。“stack dive” 是指代码反复进行调用，使调用堆栈越来越深，直到可能发生堆栈溢出的情况。The Begin method is allowed to invoke the callback synchronously if the operation completes synchronously, meaning the call to Begin might itself directly invoke the callback. And “asynchronous” operations that complete synchronously are actually very common; they’re not “asynchronous” because they’re guaranteed to complete asynchronously but rather are just permitted to. For example, consider an asynchronous read from some networked operation, like receiving from a socket. If you need only a small amount of data for each individual operation, such as reading some header data from a response, you might put a buffer in place in order to avoid the overhead of lots of system calls. Instead of doing a small read for just the amount of data you need immediately, you perform a larger read into the buffer and then consume data from that buffer until its exhausted; that lets you reduce the number of expensive system calls required to actually interact with the socket. Such a buffer might exist behind whatever asynchronous abstraction you’re using, such that the first “asynchronous” operation you perform (filling the buffer) completes asynchronously, but then all subsequent operations until that underlying buffer is exhausted don’t actually need to do any I/O, instead just pulling from the buffer, and can thus all complete synchronously. When the Begin method performs one of these operations, and finds it completes synchronously, it can then invoke the callback synchronously. That means you have one stack frame that called the Begin method, another stack frame for the Begin method itself, and now another stack frame for the callback. Now what happens if that callback turns around and calls Begin again? If that operation completes synchronously and its callback is invoked synchronously, you’re now again several more frames deep on the stack. And so on, and so on, until eventually you run out of stack.
 
 This is a real possibility that’s easy to repro. Try this program on .NET Core:
 
