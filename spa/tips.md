@@ -5,6 +5,14 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
+## PowerShell
+> created 2023/4/5
+
+统计文件 lines
+```ps1
+cat MyLogger.log | Measure-Object -Line
+```
+
 ## windows 下 curl 跳过证书吊销检查
 > 2022-03-20
 
