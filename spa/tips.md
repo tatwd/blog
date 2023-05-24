@@ -5,6 +5,13 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
+# 如何看指定程序的标准输出
+
+```bash
+strace -ewrite -s 300 -f -p $PID 2>&1
+```
+
+
 ## PowerShell
 > created 2023/4/5
 
