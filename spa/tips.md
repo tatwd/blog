@@ -5,7 +5,8 @@ create_time: 2022-03-22
 
 记录我的个人 code 片段
 
-# 如何看指定程序的标准输出
+## 如何看指定程序的标准输出
+> created 2023/5/24
 
 ```bash
 strace -ewrite -s 300 -f -p $PID 2>&1
