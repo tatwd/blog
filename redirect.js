@@ -16,7 +16,7 @@ function handleRequest(request) {
   <meta http-equiv="Refresh" content="0; URL=${targetUrl}" />
 </head>
 <body>
-  Redirect to ${targetUrl} ...
+  Redirect to <a href="${targetUrl}">${targetUrl}</a> ...
 </body>
 </html>`;
   return new Response(html, {
