@@ -8,7 +8,7 @@ var globalBlogConfig = new BlogConfig
     Author = "_king",
     Description = "万古长空，一朝风月。",
     Email = "tatwdo@gmail.com",
-    BlogLink = "https://blog.cloong.me",
+    BlogLink = "https://tatwd.deno.dev",
     Links = new MyLink[]
     {
         new (){Title = "tips", Url = "/spa/tips.html" },
