@@ -9,14 +9,14 @@ var globalBlogConfig = new BlogConfig
     Description = "万古长空，一朝风月。",
     Email = "tatwdo@gmail.com",
     BlogLink = "https://blog.cloong.me",
-    Links = new []
+    Links = new MyLink[]
     {
-        new MyLink{Title = "tips", Url = "/spa/tips.html" },
-        new MyLink{Title = "tools", Url = "/spa/tools.html" },
-        new MyLink{Title = "slides", Url = "https://slides.cloong.me" },
-        new MyLink{Title = "github", Url = "https://github.com/tatwd" },
-        new MyLink{Title = "mail", Url = "mailto:tatwdo@gmail.com" },
-        new MyLink{Title = "rss", Url = "/atom.xml" },
+        new (){Title = "tips", Url = "/spa/tips.html" },
+        new (){Title = "tools", Url = "/spa/tools.html" },
+        new (){Title = "slides", Url = "https://tatwd-slides.vercel.app" },
+        new (){Title = "github", Url = "https://github.com/tatwd" },
+        new (){Title = "mail", Url = "mailto:tatwdo@gmail.com" },
+        new (){Title = "rss", Url = "/atom.xml" },
     }
 };
 

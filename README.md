@@ -1,6 +1,6 @@
 [![Deploy blog](https://github.com/tatwd/blog/actions/workflows/ci.yml/badge.svg)](https://github.com/tatwd/blog/actions/workflows/ci.yml)
 
-Dev (.net 6.0)
+Dev (.net 7.0)
 
 ```sh
 # Generate files to dist/
