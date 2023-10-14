@@ -4,7 +4,7 @@ on:
   pull_request:
     paths: ['src/**', 'tests/**', 'theme/**']
   push:
-    paths: ['src/**', 'spa/**', 'posts/**', 'tests/**', 'theme/**', 'VERSION']
+    paths: ['src/**', 'spa/**', 'posts/**', 'tests/**', 'theme/**', 'VERSION', '.github/workflows/**']
 
 jobs:
   build:
@@ -16,17 +16,18 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
+        cache: true
 
-    - name: Cache nuget package
-      uses: actions/cache@v1
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
+    # - name: Cache nuget package
+    #   uses: actions/cache@v1
+    #   with:
+    #     path: ~/.nuget/packages
+    #     key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-nuget-
 
     - name: Restore nuget packages
-      run: dotnet restore
+      run: dotnet restore --locked-mode
     - name: Test
       run: dotnet test --no-restore
     - name: Build release
