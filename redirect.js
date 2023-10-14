@@ -1,10 +1,11 @@
 // Only used by Deno Deploy
 // my blog target domain
-const destWebsite = "https://tatwd-blog.vercel.app/";
+const destWebsite = "https://tatwd-blog.vercel.app";
 
 function handleRequest(request) {
   const { pathname, host, searchParams } = new URL(request.url);
   // searchParams.set("__from", host);
+
   const html = `<!DOCTYPE html>
 <html>
 <head>
