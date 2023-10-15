@@ -1,13 +1,16 @@
 // Only used by Deno Deploy
 // my blog target domain
-const destDomain = "tatwd.deno.dev";
+const targetURL = new URL("https://tatwd.deno.dev");
 
 function handleRequest(request) {
   // const { pathname, host, searchParams } = new URL(request.url);
   // searchParams.set("__from", host);
 
   const url = new URL(request.url);
-  url.host = destDomain;
+  url.protocol = targetURL.protocol;
+  url.host = targetURL.host;
+  url.port = targetURL.port;
+
   const targetUrl = url.toString();
 
   const html = `<!DOCTYPE html>
@@ -26,6 +29,4 @@ function handleRequest(request) {
   });
 }
 
-addEventListener("fetch", (event) => {
-  event.respondWith(handleRequest(event.request));
-});
+Deno.serve(handleRequest);
