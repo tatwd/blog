@@ -17,10 +17,10 @@
   <title>@Model.Post.Title</title>
 
   <link rel="preload" href="/fonts/MontserratRegular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/styles/dark.css" />
-  <link rel="stylesheet" href="/styles/app.css" />
-  <link rel="stylesheet" href="/styles/post.css" />
-  <link rel="stylesheet" href="/styles/prism.css" />
+  <link rel="stylesheet" href="/styles/dark.css?v=@Model.BlogConfig.Version" />
+  <link rel="stylesheet" href="/styles/app.css?v=@Model.BlogConfig.Version" />
+  <link rel="stylesheet" href="/styles/post.css?v=@Model.BlogConfig.Version" />
+  <link rel="stylesheet" href="/styles/prism.css?v=@Model.BlogConfig.Version" />
   <script>
     function setTheme(newTheme) {
       document.documentElement.setAttribute('theme', newTheme)

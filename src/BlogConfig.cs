@@ -8,6 +8,7 @@ public class BlogConfig
     public string BlogLink { get; set; } = null!;
     public MyLink[] Links { get; set; } = Array.Empty<MyLink>();
     public string Email { get; set; } = null!;
+    public string Version { get; set; } = DateTime.Now.ToString("yyMMdd.HHmmss");
 }
 
 

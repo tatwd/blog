@@ -15,8 +15,8 @@
 
   <title>@Model.BlogConfig.Title</title>
   <link rel="preload" href="/fonts/MontserratRegular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/styles/dark.css" />
-  <link rel="stylesheet" href="/styles/app.css" />
+  <link rel="stylesheet" href="/styles/dark.css?v=@Model.BlogConfig.Version" />
+  <link rel="stylesheet" href="/styles/app.css?v=@Model.BlogConfig.Version" />
   <style>
     ul {
       list-style: none;
@@ -83,9 +83,9 @@
     <ul style="border-top: 1px solid rgba(209,213,219,0.8); padding-top: 3rem">
       @foreach (var item in Model.Posts)
       {
-        <li style="margin-top: 0.5rem; margin-bottom: 1.5rem">
-          <div style="margin-bottom: 5px">
-            <a class="text-black hover-red" style="font-size: 1.25rem; margin-bottom: 5px" href="@item.Pathname">@item.Title</a>
+        <li style="margin-top: 0.5rem; margin-bottom: 1.75rem">
+          <div style="margin-bottom: 10px">
+            <a class="text-black hover-red" style="font-size: 1.25rem;" href="@item.Pathname">@item.Title</a>
             @if (item.IsDraft)
             {
               <span style="color: var(--color-red);vertical-align: top;">🎯</span>
