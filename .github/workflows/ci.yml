@@ -41,7 +41,7 @@ jobs:
     - name: Generate blog files
       run: dotnet ./out/blog.dll --cwd ./
 
-    - name: Deploy to Staging
+    - name: Deploy to Vercel Staging
       id: deploy-vercel-staging
       uses: amondnet/vercel-action@v20
       #preview on staging
@@ -56,7 +56,7 @@ jobs:
         working-directory: ./dist
         scope: ${{ secrets.VERCEL_ORG_ID }}
 
-    - name: Deploy to Production
+    - name: Deploy to Vercel Production
       uses: amondnet/vercel-action@v20
       id: deploy-vercel-production
       #deploy to production
