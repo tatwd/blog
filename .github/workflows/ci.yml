@@ -37,7 +37,7 @@ jobs:
     - name: Build release
       run: dotnet build -c Release --no-restore
     - name: Publish release
-      run: dotnet publish --project src/blog.csproj -c Release -o out --no-build
+      run: dotnet publish src/blog.csproj -c Release -o out --no-build
     - name: Generate blog files
       run: dotnet ./out/blog.dll --cwd ./
 
