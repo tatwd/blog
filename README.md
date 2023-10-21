@@ -5,6 +5,7 @@ Dev (.net 7.0)
 ```sh
 # Generate files to dist/
 # or ./build.sh
+# or ./dev.ps1 (Hot reload enabled)
 dotnet run --project src/blog.csproj \
     --cwd ./ \
     --posts ./posts \
