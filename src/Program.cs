@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MyBlog;
+using NUglify;
 
 // My blog global config, maybe should set in a config file.
 var globalBlogConfig = new BlogConfig
@@ -185,8 +186,29 @@ foreach (var path in otherThemeFiles.AsParallel())
 
     var newPath = path.Replace(themeDir, distDir);
     Util.CreateDirIfNotExists(newPath);
-    File.Copy(path, newPath, overwrite : true);
-    Console.WriteLine("Generated: {0} (copied)", newPath.Replace(distDir, "").Replace("\\", "/"));
+
+    var minified = false;
+
+    if (path.EndsWith(".css") && !path.EndsWith(".min.css"))
+    {
+        var cssText = await File.ReadAllTextAsync(path);
+        var miniCss = Uglify.Css(cssText);
+        await File.WriteAllTextAsync(newPath, miniCss.Code);
+        minified = true;
+    }
+    else if (path.EndsWith(".js") && !path.EndsWith(".min.js"))
+    {
+        var jsText = await File.ReadAllTextAsync(path);
+        var miniJs = Uglify.Js(jsText);
+        await File.WriteAllTextAsync(newPath, miniJs.Code);
+        minified = true;
+    }
+    else
+    {
+        File.Copy(path, newPath, overwrite : true);
+    }
+
+    Console.WriteLine("Generated: {0} (copied{1})", newPath.Replace(distDir, "").Replace("\\", "/"), minified ? ",minified" : "");
 }
 
 // Generate atom.xml fro all posts
