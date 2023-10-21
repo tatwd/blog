@@ -33,11 +33,11 @@ jobs:
     - name: Restore nuget packages
       run: dotnet restore
     - name: Test
-      run: dotnet test --no-restore
+      run: dotnet test -c Release --no-restore
     - name: Build release
       run: dotnet build -c Release --no-restore
     - name: Publish release
-      run: dotnet publish -c Release -o out --no-build
+      run: dotnet publish --project src/blog.csproj -c Release -o out --no-build
     - name: Generate blog files
       run: dotnet ./out/blog.dll --cwd ./
 
