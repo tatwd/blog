@@ -102,7 +102,7 @@ a {
 }
 
 .container {
-  max-width: 666px;
+  max-width: 65ch;
   margin: auto;
   padding-left: 1.75rem;
   padding-right: 1.75rem;
