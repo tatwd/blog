@@ -29,7 +29,7 @@ public class PostFrontMatter
     [YamlMember(Alias = "lang")]
     public string Lang { get; set; } = "zh-CN";
 
-    // [YamlMember(Alias = "pathname")]
-    // public string? Pathname { get; set; }
+    [YamlMember(Alias = "toc_enabled")]
+    public bool EnabledToc { get; set; }
 
 }

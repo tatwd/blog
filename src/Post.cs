@@ -15,4 +15,5 @@ public class Post
     public string TemplateName { get; set; } = null!;
     public string Lang { get; set; } = null!;
     public bool IsDraft { get; set; }
+    public PostFrontMatter FrontMatter { get; set; } = null!;
 }

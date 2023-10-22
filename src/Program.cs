@@ -110,7 +110,8 @@ foreach (var (dirPath, defaultTemplateName) in markdownDirList)
             Tags = frontMatter.Tags,
             Pathname = RewriteIndexHtml(pathname),
             TemplateName = frontMatter.TemplateName ?? defaultTemplateName,
-            IsDraft = frontMatter.Draft
+            IsDraft = frontMatter.Draft,
+            FrontMatter = frontMatter
         };
 
         if (post.TemplateName == "post")

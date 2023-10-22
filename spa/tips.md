@@ -1,6 +1,7 @@
 ---
 title: Tips & Snippets
 create_time: 2022-03-22
+toc_enabled: true
 ---
 
 记录我的个人 code 片段

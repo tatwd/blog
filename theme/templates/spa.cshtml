@@ -1,3 +1,6 @@
+@{
+  var enabledToc = Model.Post.FrontMatter.EnabledToc;
+}
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -42,6 +45,10 @@
     <h1 class="font-sans text-black">@Model.Post.Title</h1>
   </header>
   <main class="container" style="padding-top: 1.75rem;">
+    @if (enabledToc)
+    {
+      <div id="toc"></div>
+    }
     <article>@Model.Post.HtmlContent</article>
   </main>
   <footer class="container text-light text-sm" style="padding-bottom: 4rem; padding-top: 3rem">
@@ -57,6 +64,10 @@
       }
     })
   </script>
+  @if (enabledToc)
+  {
+    <script src="/scripts/toc.js"></script>
+  }
 </body>
 
 </html>

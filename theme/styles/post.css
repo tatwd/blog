@@ -107,3 +107,14 @@ article .mermaid {
   padding: 1em;
   border-radius: 0.3em;
 }
+
+/* main #toc {
+  position: fixed;
+  background-color: #f6f8fb;
+  z-index: 999;
+  padding: 15px;
+  border-radius: 1px;
+  height: 210px;
+  overflow: scroll;
+  width: 300px;
+} */
