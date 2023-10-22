@@ -17,8 +17,12 @@
       var darkIconEl = document.querySelector('#dark-theme-icon');
       var lightIconEl = document.querySelector('#light-theme-icon');
 
-      darkIconEl.addEventListener('click', toggleTheme)
-      lightIconEl.addEventListener('click', toggleTheme)
+      if (darkIconEl) {
+        darkIconEl.addEventListener('click', toggleTheme)
+      }
+      if (lightIconEl) {
+        lightIconEl.addEventListener('click', toggleTheme)
+      }
 
       toggleDisplay(preferredTheme, darkIconEl, lightIconEl)
 
@@ -42,8 +46,12 @@
     }
 
     function toggleDisplay(theme, darkIconEl, lightIconEl) {
-      darkIconEl.style.display = theme === 'dark' ? 'unset' : 'none'
-      lightIconEl.style.display = theme === 'light' ? 'unset' : 'none'
+      if (darkIconEl) {
+        darkIconEl.style.display = theme === 'dark' ? 'unset' : 'none'
+      }
+      if (lightIconEl) {
+        lightIconEl.style.display = theme === 'light' ? 'unset' : 'none'
+      }
     }
 
   })();
