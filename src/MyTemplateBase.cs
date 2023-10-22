@@ -5,18 +5,18 @@ namespace MyBlog;
 public class MyTemplateBase : RazorEngineTemplateBase
 {
     public Func<string, object?, string>? IncludeCallback { get; set; }
-    public Func<string>? RenderBodyCallback { get; set; }
-    public string? Layout { get; set; }
+    // public Func<string>? RenderBodyCallback { get; set; }
+    //public string? Layout { get; set; }
 
     public string? Include(string key, object? model = null)
     {
         return IncludeCallback?.Invoke(key, model);
     }
 
-    public string? RenderBody()
-    {
-        return RenderBodyCallback?.Invoke();
-    }
+    // public string? RenderBody()
+    // {
+    //     return RenderBodyCallback?.Invoke();
+    // }
 }
 
 
@@ -43,14 +43,11 @@ public class MyCompiledTemplate
         _compiledParts = compiledParts;
     }
 
-    public string Run(object? model)
-    {
-        return Run(_compiledTemplate, model);
-    }
+    public string Run(object? model) => Run(_compiledTemplate, model);
 
-    public string Run(IRazorEngineCompiledTemplate<MyTemplateBase> template, object? model)
+    private string Run(IRazorEngineCompiledTemplate<MyTemplateBase> template, object? model)
     {
-        MyTemplateBase? templateReference = null;
+        //MyTemplateBase? templateReference = null;
 
         var result = template.Run(instance =>
         {
@@ -62,9 +59,8 @@ public class MyCompiledTemplate
             instance.Model = model;
             instance.IncludeCallback = (key, includeModel) => Run(_compiledParts[key], includeModel);
 
-            templateReference = instance;
+            //templateReference = instance;
         });
-
 
         return result;
         // if (templateReference is null || templateReference.Layout is null)
