@@ -4,13 +4,10 @@
 <html lang="zh-CN">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>@Model.TagName</title>
-  <link rel="preload" href="/fonts/MontserratRegular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/styles/dark.css?v=@Model.BlogConfig.Version" />
-  <link rel="stylesheet" href="/styles/app.css?v=@Model.BlogConfig.Version" />
+
+  @Include("_head", Model)
+
   <style>
     ul {
       list-style: none;
@@ -18,27 +15,6 @@
       padding: 0;
     }
   </style>
-  <script>
-    function setTheme(newTheme) {
-      document.documentElement.setAttribute('theme', newTheme)
-    }
-
-    function setPreferredTheme(newTheme) {
-      setTheme(newTheme);
-      try {
-        localStorage.setItem('theme', newTheme);
-      } catch (err) { }
-    }
-
-    !(function () {
-      var preferredTheme;
-      try {
-        preferredTheme = localStorage.getItem('theme');
-      } catch (err) { }
-
-      setPreferredTheme(preferredTheme || 'light')
-    })();
-  </script>
 </head>
 
 <body>
@@ -56,8 +32,7 @@
         {
           <li style="margin-top: 0.5rem; margin-bottom: 1.75rem;">
             <div style="margin-bottom: 5px;">
-              <a class="text-black hover-red" style="font-size: 1.25rem;"
-              href="@item.Pathname">@item.Title</a>
+              <a class="text-black hover-red" style="font-size: 1.25rem;" href="@item.Pathname">@item.Title</a>
             </div>
             <div class="text-light">
               <span>@item.CreateTime.ToString("MMM d, yyyy", new CultureInfo("en-US"))</span>
@@ -69,10 +44,9 @@
       </ul>
     </article>
   </main>
-  <footer class="container text-light text-sm" style="padding-bottom: 4rem; padding-top: 3rem">
-    <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
-    2017-PRESENT © @Model.BlogConfig.Author
-  </footer>
+
+  @Include("_footer", Model)
+
 </body>
 
 </html>

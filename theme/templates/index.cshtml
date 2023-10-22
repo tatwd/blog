@@ -4,19 +4,14 @@
 <html lang="zh-CN">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <title>@Model.BlogConfig.Title</title>
   @if (!string.IsNullOrEmpty(Model.BlogConfig.Description))
   {
     <meta name="description" content="@Model.BlogConfig.Description" />
   }
 
-  <title>@Model.BlogConfig.Title</title>
-  <link rel="preload" href="/fonts/MontserratRegular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/styles/dark.css?v=@Model.BlogConfig.Version" />
-  <link rel="stylesheet" href="/styles/app.css?v=@Model.BlogConfig.Version" />
+  @Include("_head", Model)
+
   <style>
     ul {
       list-style: none;
@@ -32,29 +27,6 @@
       cursor: pointer;
     }
   </style>
-
-  <script>
-    function setTheme(newTheme) {
-      document.documentElement.setAttribute('theme', newTheme)
-    }
-
-    function setPreferredTheme(newTheme) {
-      setTheme(newTheme);
-      try {
-        localStorage.setItem('theme', newTheme);
-      } catch (err) { }
-    }
-
-    !(function () {
-      var preferredTheme;
-      try {
-        preferredTheme = localStorage.getItem('theme');
-      } catch (err) { }
-
-      setPreferredTheme(preferredTheme || 'light')
-    })();
-  </script>
-
 </head>
 
 <body>
@@ -100,38 +72,9 @@
       }
     </ul>
   </main>
-  <footer class="container text-light text-sm" style="padding-bottom: 4rem; padding-top: 3rem">
-    <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
-    2017-PRESENT © @Model.BlogConfig.Author
-  </footer>
+
+  @Include("_footer", Model)
+
 </body>
-
-<script>
-  !(function () {
-    var preferredTheme;
-    try {
-      preferredTheme = localStorage.getItem('theme');
-    } catch (err) { }
-
-    var darkIconEl = document.querySelector('#dark-theme-icon');
-    var lightIconEl = document.querySelector('#light-theme-icon');
-
-    function toggleDisplay(theme) {
-      darkIconEl.style.display = theme === 'dark' ? 'unset' : 'none'
-      lightIconEl.style.display = theme === 'light' ? 'unset' : 'none'
-    }
-
-    toggleDisplay(preferredTheme)
-
-    function toggleTheme(e) {
-      var newTheme = e.target.id === 'light-theme-icon' ? 'dark' : 'light'
-      toggleDisplay(newTheme)
-      setPreferredTheme(newTheme)
-    }
-
-    darkIconEl.addEventListener('click', toggleTheme)
-    lightIconEl.addEventListener('click', toggleTheme)
-  })()
-</script>
 
 </html>

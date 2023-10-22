@@ -7,26 +7,42 @@ namespace MyBlog;
 
 public class RazorRenderer
 {
-    private readonly IDictionary<string, IRazorEngineCompiledTemplate> _compiledTemplateMap;
+    private readonly IDictionary<string, MyCompiledTemplate> _compiledTemplateMap;
 
     public RazorRenderer(string templatesDirectory)
     {
         _compiledTemplateMap = LoadCompiledTemplates(templatesDirectory);
     }
 
-    private IDictionary<string, IRazorEngineCompiledTemplate> LoadCompiledTemplates(string templatesDirectory)
+    private IDictionary<string, MyCompiledTemplate> LoadCompiledTemplates(string templatesDirectory)
     {
         var razorEngine = new RazorEngine();
-        var files = Directory.GetFiles(templatesDirectory, "*.cshtml", SearchOption.TopDirectoryOnly);
-        return files.Select(path => new { name = Path.GetFileNameWithoutExtension(path), path })
-            .Where(item => !item.name.StartsWith("_"))
-            .Select(item => new { item.name, content =  File.ReadAllText(item.path) })
-            .ToDictionary(
-                item => item.name,
-                item => razorEngine.Compile(item.content, option =>
-                {
-                    option.AddAssemblyReference(typeof(Util));
-                }));
+        var files = Directory.GetFiles(templatesDirectory, "*.cshtml", SearchOption.TopDirectoryOnly)
+            .Select(path =>
+            {
+                var name = Path.GetFileNameWithoutExtension(path);
+                return new { name, path, isPart = name.StartsWith("_") };
+            });
+
+        var outDict = new Dictionary<string, MyCompiledTemplate>();
+        var parts = new Dictionary<string, IRazorEngineCompiledTemplate<MyTemplateBase>>();
+
+        foreach (var file in files.Where(item => item.isPart))
+        {
+            var content = File.ReadAllText(file.path);
+            parts[file.name] = razorEngine.Compile<MyTemplateBase>(content);
+        }
+
+        foreach (var file in files.Where(item => !item.isPart))
+        {
+            var content = File.ReadAllText(file.path);
+            outDict[file.name] = razorEngine.Compile(content, parts, builder =>
+            {
+                builder.AddAssemblyReference(typeof(Util));
+            });
+        }
+
+        return outDict;
     }
 
 
@@ -38,7 +54,8 @@ public class RazorRenderer
     public Task<string> RenderRazorPageAsync<T>(string templateName, T model)
     {
         var compiledTemplate = _compiledTemplateMap[templateName];
-        return compiledTemplate.RunAsync(model);
+        var result = compiledTemplate.Run(model);
+        return Task.FromResult(result);
     }
 
 }

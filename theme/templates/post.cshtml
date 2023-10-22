@@ -5,43 +5,17 @@
 <html lang="@Model.Post.Lang">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <title>@Model.Post.Title</title>
   @if (!string.IsNullOrEmpty(Model.Post.AbstractText))
   {
     <meta name="description" content="@Model.Post.AbstractText" />
   }
 
-  <title>@Model.Post.Title</title>
+  @Include("_head", Model)
 
-  <link rel="preload" href="/fonts/MontserratRegular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/styles/dark.css?v=@Model.BlogConfig.Version" />
-  <link rel="stylesheet" href="/styles/app.css?v=@Model.BlogConfig.Version" />
   <link rel="stylesheet" href="/styles/post.css?v=@Model.BlogConfig.Version" />
   <link rel="stylesheet" href="/styles/prism.css?v=@Model.BlogConfig.Version" />
-  <script>
-    function setTheme(newTheme) {
-      document.documentElement.setAttribute('theme', newTheme)
-    }
-
-    function setPreferredTheme(newTheme) {
-      setTheme(newTheme);
-      try {
-        localStorage.setItem('theme', newTheme);
-      } catch (err) { }
-    }
-
-    !(function () {
-      var preferredTheme;
-      try {
-        preferredTheme = localStorage.getItem('theme');
-      } catch (err) { }
-
-      setPreferredTheme(preferredTheme || 'light')
-    })();
-  </script>
 </head>
 
 <body>
@@ -63,19 +37,8 @@
   <main class="container" style="padding-top: 1.75rem;">
     <article>@Model.Post.HtmlContent</article>
   </main>
-  <footer class="container text-light text-sm" style="padding-bottom: 4rem; padding-top: 3rem">
-    <a class="underline" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
-    2017-PRESENT © @Model.BlogConfig.Author
-  </footer>
-  <script>
-    document.querySelector("article").addEventListener("click", function (evt) {
-      var target = evt.target;
-      var id = target.id;
-      if ("H2" === target.nodeName && id) {
-        location.hash = "#" + id
-      }
-    })
-  </script>
+
+  @Include("_footer", Model)
 
   @if (Model.Post.HtmlContent.IndexOf("class=\"mermaid\"") > -1)
   {

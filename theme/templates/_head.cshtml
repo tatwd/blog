@@ -1,0 +1,55 @@
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<script>
+  !(function () {
+
+    var preferredTheme;
+    try {
+      preferredTheme = localStorage.getItem('theme');
+    } catch (err) { }
+
+    setPreferredTheme(preferredTheme || 'light')
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+      var darkIconEl = document.querySelector('#dark-theme-icon');
+      var lightIconEl = document.querySelector('#light-theme-icon');
+
+      darkIconEl.addEventListener('click', toggleTheme)
+      lightIconEl.addEventListener('click', toggleTheme)
+
+      toggleDisplay(preferredTheme, darkIconEl, lightIconEl)
+
+      function toggleTheme(e) {
+        var newTheme = e.target.id === 'light-theme-icon' ? 'dark' : 'light'
+        toggleDisplay(newTheme, darkIconEl, lightIconEl)
+        setPreferredTheme(newTheme)
+      }
+
+    })
+
+    function setPreferredTheme(newTheme) {
+      setTheme(newTheme);
+      try {
+        localStorage.setItem('theme', newTheme);
+      } catch (err) { }
+    }
+
+    function setTheme(newTheme) {
+      document.documentElement.setAttribute('theme', newTheme)
+    }
+
+    function toggleDisplay(theme, darkIconEl, lightIconEl) {
+      darkIconEl.style.display = theme === 'dark' ? 'unset' : 'none'
+      lightIconEl.style.display = theme === 'light' ? 'unset' : 'none'
+    }
+
+  })();
+</script>
+
+
+<link rel="preload" href="/fonts/MontserratRegular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/styles/dark.css?v=@Model.BlogConfig.Version" />
+<link rel="stylesheet" href="/styles/app.css?v=@Model.BlogConfig.Version" />
