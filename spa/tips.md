@@ -6,6 +6,32 @@ toc_enabled: true
 
 记录我的个人 code 片段
 
+
+## 查询未提交事务
+
+MSSQL
+
+```sql
+USE master GO
+SET
+  TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
+SELECT
+  es.session_id,
+  es.login_name,
+  es.host_name,
+  est.text,
+  cn.last_read,
+  cn.last_write,
+  es.program_name
+FROM
+  sys.dm_exec_sessions es
+  INNER JOIN sys.dm_tran_session_transactions st --系统里还存在的事务
+  ON es.session_id = st.session_id
+  INNER JOIN sys.dm_exec_connections cn ON es.session_id = cn.session_id CROSS APPLY sys.dm_exec_sql_text(cn.most_recent_sql_handle) est
+  LEFT OUTER JOIN sys.dm_exec_requests er ON st.session_id = er.session_id
+  AND er.session_id IS NULL
+```
+
 ## 如何看指定程序的标准输出
 > created 2023/5/24
 
