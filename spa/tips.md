@@ -27,7 +27,8 @@ FROM
   sys.dm_exec_sessions es
   INNER JOIN sys.dm_tran_session_transactions st --系统里还存在的事务
   ON es.session_id = st.session_id
-  INNER JOIN sys.dm_exec_connections cn ON es.session_id = cn.session_id CROSS APPLY sys.dm_exec_sql_text(cn.most_recent_sql_handle) est
+  INNER JOIN sys.dm_exec_connections cn ON es.session_id = cn.session_id
+    CROSS APPLY sys.dm_exec_sql_text(cn.most_recent_sql_handle) est
   LEFT OUTER JOIN sys.dm_exec_requests er ON st.session_id = er.session_id
   AND er.session_id IS NULL
 ```
