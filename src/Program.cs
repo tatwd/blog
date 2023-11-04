@@ -47,7 +47,7 @@ if (Directory.Exists(distDir))
     Directory.Delete(distDir, true);
 
 var markdownRenderer = new MarkdownRenderer();
-var razorRenderer = new RazorRenderer(themeTemplateDir);
+var razorRenderer = new RazorRenderer(themeTemplateDir, globalBlogConfig);
 
 
 
@@ -118,7 +118,7 @@ foreach (var (dirPath, defaultTemplateName) in markdownDirList)
             globalPosts.Add(post);
 
         // Console.WriteLine("RazorCompile: {0}/{1}", postRoute, htmlFileName);
-        await SaveRenderedPostPageAsync(htmlFile, post, globalBlogConfig);
+        await SaveRenderedPostPageAsync(htmlFile, post);
         Console.WriteLine("Generated: {0}", pathname);
 
         foreach (var assetLink in localAssetLinks)
@@ -145,7 +145,6 @@ foreach (var (fromPath, toPath) in postAssetFiles)
 // Generate index.html
 var homeViewModel = new
 {
-    BlogConfig = globalBlogConfig,
     Posts = globalPosts.OrderByDescending(p => p.CreateTime)
 };
 await SaveRenderedRazorPageAsync($"{distDir}/index.html", "index", homeViewModel);
@@ -168,7 +167,6 @@ foreach (var g in groupPostsWithSameTag)
 
     var model = new
     {
-        BlogConfig = globalBlogConfig,
         TagName = tagName,
         Posts = postsWithSameTag
     };
@@ -231,13 +229,8 @@ string RewriteIndexHtml(string pathname)
 }
 
 
-async Task SaveRenderedPostPageAsync(string distPath, Post post, BlogConfig blogConfig)
-{
-    var html = await  razorRenderer.RenderPostPageAsync(post, blogConfig);
-    Util.CreateDirIfNotExists(distPath);
-    await using var sw = File.CreateText(distPath);
-    await sw.WriteAsync(html);
-}
+Task SaveRenderedPostPageAsync(string distPath, Post post) =>
+    SaveRenderedRazorPageAsync(distPath, post.TemplateName, post);
 
 async Task SaveRenderedRazorPageAsync(string distPath, string templateName, object? model = null)
 {

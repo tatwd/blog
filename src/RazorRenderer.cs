@@ -8,10 +8,13 @@ namespace MyBlog;
 public class RazorRenderer
 {
     private readonly IDictionary<string, MyCompiledTemplate> _compiledTemplateMap;
+    private readonly BlogConfig _blogConfig;
 
-    public RazorRenderer(string templatesDirectory)
+    public RazorRenderer(string templatesDirectory,
+        BlogConfig blogConfig)
     {
         _compiledTemplateMap = LoadCompiledTemplates(templatesDirectory);
+        _blogConfig = blogConfig;
     }
 
     private IDictionary<string, MyCompiledTemplate> LoadCompiledTemplates(string templatesDirectory)
@@ -45,16 +48,10 @@ public class RazorRenderer
         return outDict;
     }
 
-
-    public Task<string> RenderPostPageAsync(Post post, BlogConfig blogConfig)
-    {
-        return RenderRazorPageAsync(post.TemplateName, new { Post = post, BlogConfig = blogConfig });
-    }
-
     public Task<string> RenderRazorPageAsync<T>(string templateName, T model)
     {
         var compiledTemplate = _compiledTemplateMap[templateName];
-        var result = compiledTemplate.Run(model);
+        var result = compiledTemplate.Run(new { TemplateName = templateName, PageData = model, BlogConfig = _blogConfig });
         return Task.FromResult(result);
     }
 

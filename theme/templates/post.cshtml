@@ -2,14 +2,14 @@
 @using MyBlog;
 
 <!DOCTYPE html>
-<html lang="@Model.Post.Lang">
+<html lang="@Model.PageData.Lang">
 
 <head>
 
-  <title>@Model.Post.Title</title>
-  @if (!string.IsNullOrEmpty(Model.Post.AbstractText))
+  <title>@Model.PageData.Title</title>
+  @if (!string.IsNullOrEmpty(Model.PageData.AbstractText))
   {
-    <meta name="description" content="@Model.Post.AbstractText" />
+    <meta name="description" content="@Model.PageData.AbstractText" />
   }
 
   @Include("_head", Model)
@@ -23,24 +23,24 @@
     <div style="margin-top: 1.25rem">
       <a class="font-mono underline" href="/">cd ..</a>
     </div>
-    <h1 class="font-sans text-black">@Model.Post.Title</h1>
+    <h1 class="font-sans text-black">@Model.PageData.Title</h1>
     <small class="text-light">
-      <span>@Model.Post.CreateTime.ToString("MMM d, yyyy", new CultureInfo("en-US"))</span>
+      <span>@Model.PageData.CreateTime.ToString("MMM d, yyyy", new CultureInfo("en-US"))</span>
       •
-      <span>@Model.Post.TimeToRead</span>
-      @foreach (var tag in Model.Post.Tags)
+      <span>@Model.PageData.TimeToRead</span>
+      @foreach (var tag in Model.PageData.Tags)
       {
         <a class="hover-underline" href="/tags/@Util.ReplaceWhiteSpaceByLodash(tag)/">#@tag</a>
       }
     </small>
   </header>
   <main class="container" style="padding-top: 1.75rem;">
-    <article>@Model.Post.HtmlContent</article>
+    <article>@Model.PageData.HtmlContent</article>
   </main>
 
   @Include("_footer", Model)
 
-  @if (Model.Post.HtmlContent.IndexOf("class=\"mermaid\"") > -1)
+  @if (Model.PageData.HtmlContent.IndexOf("class=\"mermaid\"") > -1)
   {
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script>mermaid.initialize({ startOnLoad: true });</script>

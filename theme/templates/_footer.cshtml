@@ -3,15 +3,19 @@
   2017-PRESENT © @Model.BlogConfig.Author
 </footer>
 
-<script>
-  const articleEl = document.querySelector("article");
-  if (articleEl) {
-    articleEl.addEventListener("click", function (evt) {
-      var target = evt.target;
-      var id = target.id;
-      if ("H2" === target.nodeName && id) {
-        location.hash = "#" + id
-      }
-    })
-  }
-</script>
+<!-- @Model.TemplateName -->
+@if (Model.TemplateName == "post" || Model.TemplateName == "spa")
+{
+  <script>
+    const articleEl = document.querySelector("article");
+    if (articleEl) {
+      articleEl.addEventListener("click", function (evt) {
+        var target = evt.target;
+        var id = target.id;
+        if ("H2" === target.nodeName && id) {
+          location.hash = "#" + id
+        }
+      })
+    }
+  </script>
+}

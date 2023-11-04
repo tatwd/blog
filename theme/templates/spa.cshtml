@@ -1,11 +1,11 @@
 @{
-  var enabledToc = Model.Post.FrontMatter.EnabledToc;
+  var enabledToc = Model.PageData.FrontMatter.EnabledToc;
 }
 <!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
-  <title>@Model.Post.Title</title>
+  <title>@Model.PageData.Title</title>
 
   @Include("_head", Model)
 
@@ -18,14 +18,14 @@
     <div style="margin-top: 1.25rem">
       <a class="font-mono underline" href="/">cd ..</a>
     </div>
-    <h1 class="font-sans text-black">@Model.Post.Title</h1>
+    <h1 class="font-sans text-black">@Model.PageData.Title</h1>
   </header>
   <main class="container" style="padding-top: 1.75rem;">
     @if (enabledToc)
     {
       <div id="toc"></div>
     }
-    <article>@Model.Post.HtmlContent</article>
+    <article>@Model.PageData.HtmlContent</article>
   </main>
 
   @Include("_footer", Model)

@@ -4,7 +4,7 @@
 <html lang="zh-CN">
 
 <head>
-  <title>@Model.TagName</title>
+  <title>@Model.PageData.TagName</title>
 
   @Include("_head", Model)
 
@@ -22,13 +22,13 @@
     <div style="margin-top: 1.25rem">
       <a class="font-mono underline" href="/">cd ..</a>
     </div>
-    <h1 class="font-sans text-black">#@Model.TagName</h1>
-    <small class="text-light">共 @Model.Posts.Count 篇</small>
+    <h1 class="font-sans text-black">#@Model.PageData.TagName</h1>
+    <small class="text-light">共 @Model.PageData.Posts.Count 篇</small>
   </header>
   <main class="container" style="padding-top: 2rem;">
     <article>
       <ul>
-        @foreach (var item in Model.Posts)
+        @foreach (var item in Model.PageData.Posts)
         {
           <li style="margin-top: 0.5rem; margin-bottom: 1.75rem;">
             <div style="margin-bottom: 5px;">
