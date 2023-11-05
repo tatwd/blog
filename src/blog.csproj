@@ -10,15 +10,15 @@
 
   <ItemGroup>
     <PackageReference Include="FeedSharp" Version="0.1.4" />
-    <PackageReference Include="Markdig" Version="0.30.3" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
+    <PackageReference Include="Markdig" Version="0.33.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="7.0.0" />
     <PackageReference Include="NUglify" Version="1.21.0" />
     <PackageReference Include="PrismSharp.Highlighting.HTML" Version="0.1.4" />
     <!-- <PackageReference Include="Markdown.ColorCode" Version="1.0.0" /> -->
     <!-- <PackageReference Include="RazorEngine" Version="3.10.0" /> -->
     <PackageReference Include="RazorEngineCore" Version="2022.8.1" />
     <!-- <PackageReference Include="WebStoating.Markdig.Prism" Version="1.0.0" /> -->
-    <PackageReference Include="YamlDotNet" Version="11.2.1" />
+    <PackageReference Include="YamlDotNet" Version="13.7.1" />
     <!-- <PackageReference Include="WebStoating.Markdig.Prism" Version="1.0.0" /> -->
   </ItemGroup>
 
