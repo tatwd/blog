@@ -27,19 +27,21 @@ public class RazorRenderer
         var outDict = new Dictionary<string, MyCompiledTemplate>();
         var parts = new Dictionary<string, IRazorEngineCompiledTemplate<MyTemplateBase>>();
 
-        foreach (var file in files.Where(item => item.isPart))
+        foreach (var file in files)
         {
-            var content = File.ReadAllText(file.path);
-            parts[file.name] = razorEngine.Compile<MyTemplateBase>(content);
-        }
-
-        foreach (var file in files.Where(item => !item.isPart))
-        {
-            var content = File.ReadAllText(file.path);
-            outDict[file.name] = razorEngine.Compile(content, parts, builder =>
+            if (file.isPart)
             {
-                builder.AddAssemblyReference(typeof(Util));
-            });
+                var content = File.ReadAllText(file.path);
+                parts[file.name] = razorEngine.Compile<MyTemplateBase>(content);
+            }
+            else
+            {
+                var content = File.ReadAllText(file.path);
+                outDict[file.name] = razorEngine.Compile(content, parts, builder =>
+                {
+                    builder.AddAssemblyReference(typeof(Util));
+                });
+            }
         }
 
         return outDict;
