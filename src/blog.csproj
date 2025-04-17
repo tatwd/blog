@@ -18,7 +18,7 @@
     <!-- <PackageReference Include="RazorEngine" Version="3.10.0" /> -->
     <PackageReference Include="RazorEngineCore" Version="2024.4.1" />
     <!-- <PackageReference Include="WebStoating.Markdig.Prism" Version="1.0.0" /> -->
-    <PackageReference Include="YamlDotNet" Version="13.7.1" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
     <!-- <PackageReference Include="WebStoating.Markdig.Prism" Version="1.0.0" /> -->
   </ItemGroup>
 
