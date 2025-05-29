@@ -41,36 +41,36 @@ jobs:
     - name: Generate blog files
       run: dotnet ./out/blog.dll --cwd ./
 
-    - name: Deploy to Vercel Staging
-      id: deploy-vercel-staging
-      uses: amondnet/vercel-action@v20
-      #preview on staging
-      if: |
-        github.event_name == 'push' &&
-        github.ref == 'refs/heads/main' &&
-        startsWith(github.event.head_commit.message, 'preview:')
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: ./dist
-        scope: ${{ secrets.VERCEL_ORG_ID }}
+    # - name: Deploy to Vercel Staging
+    #   id: deploy-vercel-staging
+    #   uses: amondnet/vercel-action@v20
+    #   #preview on staging
+    #   if: |
+    #     github.event_name == 'push' &&
+    #     github.ref == 'refs/heads/main' &&
+    #     startsWith(github.event.head_commit.message, 'preview:')
+    #   with:
+    #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+    #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+    #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+    #     working-directory: ./dist
+    #     scope: ${{ secrets.VERCEL_ORG_ID }}
 
-    - name: Deploy to Vercel Production
-      uses: amondnet/vercel-action@v20
-      id: deploy-vercel-production
-      #deploy to production
-      if: |
-        github.event_name == 'push' &&
-        github.ref == 'refs/heads/main' &&
-        startsWith(github.event.head_commit.message, 'release:')
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
-        working-directory: ./dist
-        scope: ${{ secrets.VERCEL_ORG_ID }}
+    # - name: Deploy to Vercel Production
+    #   uses: amondnet/vercel-action@v20
+    #   id: deploy-vercel-production
+    #   #deploy to production
+    #   if: |
+    #     github.event_name == 'push' &&
+    #     github.ref == 'refs/heads/main' &&
+    #     startsWith(github.event.head_commit.message, 'release:')
+    #   with:
+    #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+    #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+    #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+    #     vercel-args: '--prod'
+    #     working-directory: ./dist
+    #     scope: ${{ secrets.VERCEL_ORG_ID }}
 
     - name: Upload to Deno Deploy
       uses: denoland/deployctl@v1
