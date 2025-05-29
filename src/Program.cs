@@ -12,6 +12,7 @@ var globalBlogConfig = new BlogConfig
     BlogLink = "https://tatwd.deno.dev",
     Links = new MyLink[]
     {
+        new (){Title = "prompts", Url = "/spa/prompts.html" },
         new (){Title = "tips", Url = "/spa/tips.html" },
         new (){Title = "tools", Url = "/spa/tools.html" },
         new (){Title = "slides", Url = "https://tatwd-slides.vercel.app" },
