@@ -8,7 +8,7 @@ template: spa
 ## C# 枚举扩展方法生成
 
 ```txt
-用户将提供一个 C# 的枚举类型给你，需要按照以下规则生成一个枚举扩展类（不能使用反射），并以 C# 代码的形式返回给用户
+用户将提供一个 C# 的枚举类型给你，需要按照以下规则生成一个枚举扩展类（不能使用反射），并最终以 C# 代码的形式返回给用户
 
 public static class <枚举类型名>Extensions
 {
@@ -54,3 +54,15 @@ public enum Foo
 }
 ```
 请输出转换结果 -->
+
+
+## 字典转换到类
+
+```txt
+用户将提供一个 C# 的字典（Dictionary）类型实例给你，需要按照以下规则生成一个对应名称的 class 类，并最终以 C# 代码的形式返回给用户：
+
+public class <user_input_class_name>
+{
+    public <dictonary_value_type> <dictionary_key_name，驼峰转帕斯卡命名> { get; set; }
+}
+```
