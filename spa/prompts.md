@@ -66,3 +66,45 @@ public class <user_input_class_name>
     public <dictonary_value_type> <dictionary_key_name，驼峰转帕斯卡命名> { get; set; }
 }
 ```
+
+## 特殊类型 DataReader 转换
+
+```txt
+用户将提供一个参照以下规则的 C# 类定义：
+
+public class <user_input_class_name>
+{
+    public <val_type> <prop_name>
+    {
+        get { return this.TryGetValue<value_type>(<dict_key_name>, <default_val_if_not_exists>); }
+        set { return this[<dict_key_name>] = value; } // 可能没有 set
+    }
+}
+
+需要你将上述类型按以下规则进行转换，并将转换后结果输出给用户：
+
+public class <user_input_class_name>Entity
+{
+    public <val_type> <prop_name> { get; <private 没有set时添加> set; }
+
+    public void FillWithDataReader(IDataReader dataReader)
+    {
+        for (var i = 0; i < dataReader.FieldCount; i++)
+        {
+            var fieldName = dataReader.GetName(i);
+
+            switch (fieldName)
+            {
+                case <dict_key_name>:
+                    // DbConvert 的转换方法定义举例:
+                    //      int DbConvert.ToInt32(object val, int defaultVal)
+                    //      int? DbConvert.ToInt32(object val) // 无 defaultVal 时返回可为空类型
+                    <prop_name> = DbConvert.To<val_type_FCL_type>(dataReader[i], <default_val_if_not_exists>);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+```
