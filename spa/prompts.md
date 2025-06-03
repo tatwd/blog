@@ -123,3 +123,14 @@ public class <user_input_class_name>Entity
 }
 ```
 ~~~
+
+
+## 批量数据转换成逗号分割字符串
+
+```txt
+用户将提供一组按特定字符分割的数据给你，格式参考以下：
+<value_1><split_char><value_2>[...]
+
+需要你将其按以下格式进行转换并返回给用户：
+'<value_1>','<value_2>'[...]
+```
