@@ -7,9 +7,10 @@ template: spa
 
 ## C# 枚举扩展方法生成
 
-```txt
-用户将提供一个 C# 的枚举类型给你，需要按照以下规则生成一个枚举扩展类（不能使用反射），并最终以 C# 代码的形式返回给用户
+~~~txt
+用户将提供一个 C# 枚举类型给你，需要你按以下规则生成一个枚举扩展类（不能使用反射）返回给用户：
 
+```csharp
 public static class <枚举类型名>Extensions
 {
     /// <summary>
@@ -20,6 +21,8 @@ public static class <枚举类型名>Extensions
         return value switch
         {
             // case 按照枚举定义的顺序
+            // 枚举值过多时不能省略
+
             <枚举类型名>.<枚举值1> => nameof(<枚举类型名>.<枚举值1>),
             _ => value.ToString()
         };
@@ -33,13 +36,18 @@ public static class <枚举类型名>Extensions
         return value switch
         {
             // case 按照枚举定义的顺序
-            <枚举类型名>.<枚举值1> => <枚举值1上的特性 Description 或者 DisplayName 设置的描述信息>,
-            <枚举类型名>.<枚举值2> => nameof(<枚举类型名>.<枚举值2>), // 未设置特性 Description 或者 DisplayName
+            // 枚举值过多时不能省略
+
+            <枚举类型名>.<枚举值1> => <枚举值1描述>, // [Description("枚举值1描述")]
+            <枚举类型名>.<枚举值2> => <枚举值2描述>, // [DisplayName("枚举值2描述")]
+            <枚举类型名>.<枚举值3> =>
+                nameof(<枚举类型名>.<枚举值3>), // 无 Description 或者 DisplayName
             _ => value.ToString() // 未定义枚举值
         };
     }
 }
 ```
+~~~
 
 <!-- 现在给你一个枚举类型：
 ```csharp
@@ -58,20 +66,23 @@ public enum Foo
 
 ## 字典转换到类
 
-```txt
-用户将提供一个 C# 的字典（Dictionary）类型实例给你，需要按照以下规则生成一个对应名称的 class 类，并最终以 C# 代码的形式返回给用户：
+~~~txt
+用户将提供一个 C# 字典类型实例给你，需要你按以下规则生成一个对应 class 类返回给用户：
 
+```csharp
 public class <user_input_class_name>
 {
-    public <dictonary_value_type> <dictionary_key_name，驼峰转帕斯卡命名> { get; set; }
+    public <dict_value_type> <dict_key_name，驼峰转帕斯卡命名> { get; set; }
 }
 ```
+~~~
 
 ## 特殊类型 DataReader 转换
 
-```txt
+~~~txt
 用户将提供一个参照以下规则的 C# 类定义：
 
+```csharp
 public class <user_input_class_name>
 {
     public <val_type> <prop_name>
@@ -80,9 +91,11 @@ public class <user_input_class_name>
         set { return this[<dict_key_name>] = value; } // 可能没有 set
     }
 }
+```
 
 需要你将上述类型按以下规则进行转换，并将转换后结果输出给用户：
 
+```csharp
 public class <user_input_class_name>Entity
 {
     public <val_type> <prop_name> { get; <private 没有set时添加> set; }
@@ -108,3 +121,4 @@ public class <user_input_class_name>Entity
     }
 }
 ```
+~~~
