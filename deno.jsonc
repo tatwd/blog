@@ -1,0 +1,6 @@
+{
+  "deploy": {
+    "org": "tatwdo",
+    "app": "tale"
+  }
+}
