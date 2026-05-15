@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using MyBlog;
 using NUglify;
 
@@ -15,7 +15,7 @@ var globalBlogConfig = new BlogConfig
         new (){Title = "prompts", Url = "/spa/prompts.html" },
         new (){Title = "tips", Url = "/spa/tips.html" },
         new (){Title = "tools", Url = "/spa/tools.html" },
-        new (){Title = "slides", Url = "https://tatwd-slides.vercel.app" },
+        new (){Title = "slides", Url = "https://slides.tatwdo.deno.net" },
         new (){Title = "github", Url = "https://github.com/tatwd" },
         new (){Title = "mail", Url = "mailto:tatwdo@gmail.com" },
         new (){Title = "rss", Url = "/atom.xml" },
