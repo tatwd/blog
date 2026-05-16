@@ -10,3 +10,5 @@ output/
 .idea/
 *.user
 .fake
+
+*.lscache

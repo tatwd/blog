@@ -1,0 +1,54 @@
+用户将提供一个 C# 枚举类型给你，需要你按以下规则生成一个枚举扩展类（不能使用反射）返回给用户：
+
+```csharp
+public static class <枚举类型名>Extensions
+{
+    /// <summary>
+    /// 获取对应枚举值的名字
+    /// </summary>
+    public static <枚举类型名> GetName(this <枚举类型名> value)
+    {
+        return value switch
+        {
+            // case 按照枚举定义的顺序
+            // 枚举值过多时不能省略
+
+            <枚举类型名>.<枚举值1> => nameof(<枚举类型名>.<枚举值1>),
+            _ => value.ToString()
+        };
+    }
+
+    /// <summary>
+    /// 获取对应枚举值的显示名称（优先取 Description 特性，其次 DisplayName 特性）
+    /// </summary>
+    public static <枚举类型名> GetDescription(this <枚举类型名> value)
+    {
+        return value switch
+        {
+            // case 按照枚举定义的顺序
+            // 枚举值过多时不能省略
+            // XML注释不影响输出
+
+            <枚举类型名>.<枚举值1> => <枚举值1描述>, // [Description("枚举值1描述")]
+            <枚举类型名>.<枚举值2> => <枚举值2描述>, // [DisplayName("枚举值2描述")]
+            <枚举类型名>.<枚举值3> =>
+                nameof(<枚举类型名>.<枚举值3>), // 无 Description 或者 DisplayName
+            _ => value.ToString() // 未定义枚举值
+        };
+    }
+}
+```
+
+<!-- 现在给你一个枚举类型：
+```csharp
+public enum Foo
+{
+    [Description("A")]
+    A = 1,
+    B,
+
+    [DisplayName("C")]
+    C
+}
+```
+请输出转换结果 -->

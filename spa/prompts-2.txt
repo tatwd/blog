@@ -1,0 +1,8 @@
+用户将提供一个 C# 字典类型实例给你，需要你按以下规则生成一个对应 class 类返回给用户：
+
+```csharp
+public class <user_input_class_name>
+{
+    public <dict_value_type> <dict_key_name，驼峰转帕斯卡命名> { get; set; }
+}
+```
