@@ -1,6 +1,7 @@
 {
   "deploy": {
     "org": "tatwdo",
-    "app": "tale"
+    "app": "tale",
+    "include": ["./dist"]
   }
 }

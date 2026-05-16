@@ -72,13 +72,21 @@ jobs:
     #     working-directory: ./dist
     #     scope: ${{ secrets.VERCEL_ORG_ID }}
 
+    # - name: Upload to Deno Deploy
+    #   uses: denoland/deployctl@v1
+    #   if: |
+    #     github.event_name == 'push' &&
+    #     github.ref == 'refs/heads/main' &&
+    #     startsWith(github.event.head_commit.message, 'release:')
+    #   with:
+    #     project: tatwd
+    #     entrypoint: https://deno.land/std@0.204.0/http/file_server.ts
+    #     root: ./dist
     - name: Upload to Deno Deploy
-      uses: denoland/deployctl@v1
+      uses: denoland/setup-deno@v2
       if: |
         github.event_name == 'push' &&
         github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'release:')
-      with:
-        project: tatwd
-        entrypoint: https://deno.land/std@0.204.0/http/file_server.ts
-        root: ./dist
+      run: |
+        deno deploy
