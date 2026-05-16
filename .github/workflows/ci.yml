@@ -91,5 +91,7 @@ jobs:
         startsWith(github.event.head_commit.message, 'release:')
     - name: Upload to Deno Deploy
       if: ${{ steps.setup-deno.outcome == 'success' }}
+      env:
+          DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
       run: |
         deno deploy
