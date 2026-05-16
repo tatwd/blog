@@ -82,11 +82,14 @@ jobs:
     #     project: tatwd
     #     entrypoint: https://deno.land/std@0.204.0/http/file_server.ts
     #     root: ./dist
-    - name: Upload to Deno Deploy
+    - name: Setup Deno
       uses: denoland/setup-deno@v2
+      id: setup-deno
       if: |
         github.event_name == 'push' &&
         github.ref == 'refs/heads/main' &&
         startsWith(github.event.head_commit.message, 'release:')
+    - name: Upload to Deno Deploy
+      if: ${{ steps.setup-deno.outcome == 'success' }}
       run: |
         deno deploy
