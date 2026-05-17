@@ -94,4 +94,4 @@ jobs:
       env:
         DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
       run: |
-        ls ./ && deno deploy
+        ls ./ && deno deploy --prod
