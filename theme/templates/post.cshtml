@@ -40,10 +40,15 @@
 
   @Include("_footer", Model)
 
-  @if (Model.PageData.HtmlContent.IndexOf("class=\"mermaid\"") > -1)
+  @if (Model.PageData.HtmlContent.IndexOf("class=\"language-mermaid\"") > -1)
   {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.0/mermaid.min.js"></script>
-    <script>mermaid.initialize({ startOnLoad: true });</script>
+    <script>
+      mermaid.initialize({ startOnLoad: false });
+      mermaid.run({
+        querySelector: 'code.language-mermaid',
+      }).then(console.log).catch(console.error);
+    </script>
   }
 </body>
 

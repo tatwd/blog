@@ -2,8 +2,9 @@
 
 :root {
   --code-bgcolor: #f6f8fa;
-  --code-fonts: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  --code-fonts:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
 article {
@@ -101,11 +102,15 @@ article code:not([class*="language-"]) {
   text-transform: none;
 }
 
-article .mermaid {
+article .language-mermaid {
+  background-color: #fff !important;
+  /* padding: 1em; */
+  /* border-radius: 0.3em; */
+}
+
+article .language-mermaid > code {
+  display: block;
   text-align: center;
-  background-color: #fff;
-  padding: 1em;
-  border-radius: 0.3em;
 }
 
 /* main #toc {
